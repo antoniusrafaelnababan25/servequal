@@ -2,9 +2,9 @@
   
 # 📊 SERVQUAL MONITORING SYSTEM
 
-[![Laravel](https://img.shields.io/badge/Laravel-10.x-red.svg?style=for-the-badge&logo=laravel)](https://laravel.com)
-[![PHP](https://img.shields.io/badge/PHP-8.1+-blue.svg?style=for-the-badge&logo=php)](https://php.net)
-[![MySQL](https://img.shields.io/badge/MySQL-5.7+-orange.svg?style=for-the-badge&logo=mysql)](https://mysql.com)
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-red.svg?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.4+-blue.svg?style=for-the-badge&logo=php)](https://php.net)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange.svg?style=for-the-badge&logo=mysql)](https://mysql.com)
 [![Status](https://img.shields.io/badge/Status-Production-green.svg?style=for-the-badge)](https://github.com/antoniusrafaelnababan25/servequal)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
@@ -35,7 +35,7 @@
 
 ## 🎯 TENTANG PROJECT
 
-**SERVQUAL Monitoring System** adalah aplikasi web berbasis Laravel yang dirancang untuk membantu organisasi mengukur dan menganalisis kualitas layanan menggunakan metode **SERVQUAL (Service Quality)** yang dikembangkan oleh Parasuraman, Zeithaml, dan Berry.
+**SERVQUAL Monitoring System** adalah aplikasi web berbasis Laravel 12 yang dirancang untuk membantu organisasi mengukur dan menganalisis kualitas layanan menggunakan metode **SERVQUAL (Service Quality)** yang dikembangkan oleh Parasuraman, Zeithaml, dan Berry.
 
 Metode SERVQUAL mengukur **GAP** (kesenjangan) antara:
 - **Harapan (Expectation)** : Tingkat layanan yang diharapkan pelanggan
@@ -112,41 +112,44 @@ Metode SERVQUAL mengukur **GAP** (kesenjangan) antara:
 ## 🛠️ TEKNOLOGI
 
 ### Backend
-- Laravel 10.x
-- PHP 8.1+
-- MySQL 8.0 / MariaDB 10.6
+- Laravel 12.x (Stable Release)
+- PHP 8.4 (Latest Stable)
+- MySQL 8.0+ / MariaDB 11.0+
 - Laravel Sanctum (Authentication API)
 - Laravel Excel (Import/Export)
 - DomPDF / barryvdh/laravel-dompdf
+- Laravel Reverb (WebSocket - Optional)
 
 ### Frontend
-- Blade Template Engine
+- Blade Template Engine with Laravel 12 Features
 - Bootstrap 5.3
 - Tailwind CSS 3.x
-- Alpine.js 3.x
-- jQuery 3.6
+- Alpine.js 3.x (Laravel 12 Default)
+- Vite (Build Tool - Laravel 12 Default)
 - Chart.js / ApexCharts
 - DataTables (Server-side)
-- SweetAlert2
 
 ### Devops & Tools
 - Git & GitHub
 - Composer 2.x
 - NPM / Yarn
-- Laragon (Local Development)
-- VS Code
+- Laragon (Local Development - PHP 8.4 Ready)
+- VS Code with Laravel Extension Pack
 
 ---
 
 ## ⚡ INSTALASI CEPAT
 
-### Persyaratan Sistem
-| Komponen | Minimal |
-|----------|---------|
-| PHP | 8.1+ |
-| Composer | 2.x |
-| MySQL | 5.7+ |
-| Laragon/XAMPP | Terbaru |
+### Persyaratan Sistem (Update untuk PHP 8.4 & Laravel 12)
+
+| Komponen | Minimal | Rekomendasi |
+|----------|---------|-------------|
+| PHP | 8.4.0 | 8.4.4+ |
+| Composer | 2.5+ | 2.8+ |
+| MySQL | 8.0+ | 8.4+ |
+| Node.js | 20.x+ | 22.x+ |
+| Laragon | 6.0+ (dengan PHP 8.4) | Terbaru |
+| Ekstensi PHP | BCMath, Ctype, Fileinfo, JSON, Mbstring, OpenSSL, PDO, Tokenizer, XML, GD, Zip | Semua terinstall |
 
 ### Langkah-langkah Instalasi
 
@@ -155,7 +158,7 @@ Metode SERVQUAL mengukur **GAP** (kesenjangan) antara:
 git clone https://github.com/antoniusrafaelnababan25/servequal.git
 cd servequal
 
-# 2. Install PHP dependencies
+# 2. Install PHP dependencies (Laravel 12 & PHP 8.4 compatible)
 composer install
 
 # 3. Copy environment file
@@ -165,7 +168,7 @@ cp .env.example .env
 php artisan key:generate
 
 # 5. Create database (via phpMyAdmin atau CLI)
-# CREATE DATABASE servqual_db;
+# CREATE DATABASE servqual_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 # 6. Jalankan migrasi database
 php artisan migrate
@@ -176,7 +179,7 @@ php artisan db:seed
 # 8. Buat symbolic link untuk storage
 php artisan storage:link
 
-# 9. Install frontend dependencies (opsional)
+# 9. Install frontend dependencies dengan Vite (Laravel 12 default)
 npm install
 npm run build
 
