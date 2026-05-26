@@ -34,32 +34,38 @@ class DashboardController extends Controller
         $periodeList = KuesionerPeriode::orderBy('created_at', 'desc')->get();
 
         // Query dengan filter periode untuk penilaian dosen
-        $penilaianQuery = PenilaianDosen::query();
+        $penilaianDosenQuery = PenilaianDosen::query();
         if ($periodeTerpilih) {
-            $penilaianQuery->where('periode_id', $periodeTerpilih->id);
+            $penilaianDosenQuery->where('periode_id', $periodeTerpilih->id);
         }
 
         // Query untuk penilaian fasilitas dengan filter periode
-        $fasilitasQuery = PenilaianFasilitas::query();
+        $penilaianFasilitasQuery = PenilaianFasilitas::query();
         if ($periodeTerpilih) {
-            $fasilitasQuery->where('periode_id', $periodeTerpilih->id);
+            $penilaianFasilitasQuery->where('periode_id', $periodeTerpilih->id);
         }
 
         // Statistik
         $totalDosen = User::where('role', 'dosen')->count();
         $totalMahasiswa = User::where('role', 'mahasiswa')->count();
-        $totalPenilaianDosen = $penilaianQuery->count();
-        $totalPenilaianFasilitas = $fasilitasQuery->count();
-        $avgKepuasan = $penilaianQuery->avg('rata_rata') ?? 0;
+        $totalPenilaianDosen = $penilaianDosenQuery->count();
+        $totalPenilaianFasilitas = $penilaianFasilitasQuery->count();
+        $avgKepuasanDosen = $penilaianDosenQuery->avg('rata_rata') ?? 0;
+        $avgKepuasanFasilitas = $penilaianFasilitasQuery->avg('rata_rata') ?? 0;
 
-        // Chart data berdasarkan periode (pastikan selalu ada data)
-        $chartData = $this->getChartData($periodeTerpilih ? $periodeTerpilih->id : null);
+        // Chart data penilaian dosen
+        $chartDataDosen = $this->getChartDataPenilaianDosen($periodeTerpilih ? $periodeTerpilih->id : null);
+
+        // Chart data penilaian fasilitas
+        $chartDataFasilitas = $this->getChartDataPenilaianFasilitas($periodeTerpilih ? $periodeTerpilih->id : null);
 
         // Notifikasi untuk admin
         $notifikasi = Notifikasi::where(function ($q) {
             $q->where('target_role', 'admin')->orWhere('target_role', 'all');
-        })->orderBy('created_at', 'desc')->get();
-        $unreadCount = $notifikasi->where('is_read', false)->count();
+        })->orderBy('created_at', 'desc')->limit(10)->get();
+        $unreadCount = Notifikasi::where(function ($q) {
+            $q->where('target_role', 'admin')->orWhere('target_role', 'all');
+        })->where('is_read', false)->count();
 
         // User dengan filter (dosen & mahasiswa)
         $users = $this->getFilteredUsers($request);
@@ -74,8 +80,10 @@ class DashboardController extends Controller
             'totalMahasiswa',
             'totalPenilaianDosen',
             'totalPenilaianFasilitas',
-            'avgKepuasan',
-            'chartData',
+            'avgKepuasanDosen',
+            'avgKepuasanFasilitas',
+            'chartDataDosen',
+            'chartDataFasilitas',
             'notifikasi',
             'unreadCount',
             'users',
@@ -88,30 +96,17 @@ class DashboardController extends Controller
     }
 
     /**
-     * API: Data chart gap per dimensi (dengan filter periode)
+     * Hitung rata-rata persepsi dan harapan untuk setiap dimensi SERVQUAL (Penilaian Dosen)
      */
-    public function chartData(Request $request)
+    private function getChartDataPenilaianDosen($periodeId = null)
     {
-        $periodeId = $request->input('periode_id');
-        return response()->json($this->getChartData($periodeId));
-    }
-
-    /**
-     * Hitung rata-rata persepsi dan harapan untuk setiap dimensi SERVQUAL
-     * Pastikan selalu mengembalikan data, tidak pernah null atau kosong
-     */
-    private function getChartData($periodeId = null)
-    {
-        // Data dummy default (akan digunakan jika tidak ada data penilaian)
-        $defaultData = [
-            'Tangible' => ['persepsi' => 0, 'harapan' => 0, 'gap' => 0],
-            'Reliability' => ['persepsi' => 0, 'harapan' => 0, 'gap' => 0],
-            'Responsiveness' => ['persepsi' => 0, 'harapan' => 0, 'gap' => 0],
-            'Assurance' => ['persepsi' => 0, 'harapan' => 0, 'gap' => 0],
-            'Empathy' => ['persepsi' => 0, 'harapan' => 0, 'gap' => 0],
-        ];
-
         $dimensi = ['Tangible', 'Reliability', 'Responsiveness', 'Assurance', 'Empathy'];
+
+        // Data default
+        $defaultData = [];
+        foreach ($dimensi as $dim) {
+            $defaultData[$dim] = ['persepsi' => 0, 'harapan' => 0, 'gap' => 0];
+        }
 
         // Ambil semua penilaian sesuai periode
         $query = PenilaianDosen::query();
@@ -121,7 +116,6 @@ class DashboardController extends Controller
 
         $penilaianList = $query->get();
 
-        // Jika tidak ada data, return default (semua 0)
         if ($penilaianList->isEmpty()) {
             return $defaultData;
         }
@@ -133,36 +127,26 @@ class DashboardController extends Controller
 
         foreach ($penilaianList as $penilaian) {
             $nilai = $penilaian->nilai;
-
-            // Decode jika string JSON
             if (is_string($nilai)) {
                 $nilai = json_decode($nilai, true);
             }
-
-            if (!is_array($nilai)) {
+            if (!is_array($nilai))
                 continue;
-            }
 
-            foreach ($nilai as $key => $item) {
-                // Cari dimensi dari id_pertanyaan
-                $idPertanyaan = is_array($item) ? ($item['id_pertanyaan'] ?? $key) : $key;
-                $pertanyaan = Pertanyaan::find($idPertanyaan);
-                $dimensiItem = $pertanyaan ? $pertanyaan->dimensi : null;
+            foreach ($nilai as $jawaban) {
+                if (isset($jawaban['id_pertanyaan'])) {
+                    $pertanyaan = Pertanyaan::find($jawaban['id_pertanyaan']);
+                    $dimensiItem = $pertanyaan ? $pertanyaan->dimensi : null;
 
-                if ($dimensiItem && in_array($dimensiItem, $dimensi)) {
-                    if (is_array($item)) {
-                        $totalPersepsi[$dimensiItem] += (int) ($item['persepsi'] ?? 0);
-                        $totalHarapan[$dimensiItem] += (int) ($item['harapan'] ?? 0);
-                    } else {
-                        $totalPersepsi[$dimensiItem] += (int) ($item ?? 0);
-                        $totalHarapan[$dimensiItem] += (int) ($item ?? 0);
+                    if ($dimensiItem && in_array($dimensiItem, $dimensi)) {
+                        $totalPersepsi[$dimensiItem] += (int) ($jawaban['persepsi'] ?? 0);
+                        $totalHarapan[$dimensiItem] += (int) ($jawaban['harapan'] ?? 0);
+                        $count[$dimensiItem]++;
                     }
-                    $count[$dimensiItem]++;
                 }
             }
         }
 
-        // Hitung rata-rata
         $result = [];
         foreach ($dimensi as $dim) {
             $avgPersepsi = $count[$dim] > 0 ? round($totalPersepsi[$dim] / $count[$dim], 2) : 0;
@@ -175,6 +159,98 @@ class DashboardController extends Controller
         }
 
         return $result;
+    }
+
+    /**
+     * Hitung rata-rata persepsi dan harapan untuk setiap kategori (Penilaian Fasilitas)
+     */
+    private function getChartDataPenilaianFasilitas($periodeId = null)
+    {
+        $kategori = ['umum', 'peralatan', 'ruangan', 'akses', 'infrastruktur'];
+        $kategoriLabel = [
+            'umum' => 'Umum',
+            'peralatan' => 'Peralatan',
+            'ruangan' => 'Ruangan',
+            'akses' => 'Akses',
+            'infrastruktur' => 'Infrastruktur'
+        ];
+
+        // Data default
+        $defaultData = [];
+        foreach ($kategori as $kat) {
+            $defaultData[$kat] = ['persepsi' => 0, 'harapan' => 0, 'gap' => 0, 'label' => $kategoriLabel[$kat]];
+        }
+
+        // Ambil semua penilaian fasilitas sesuai periode
+        $query = PenilaianFasilitas::query();
+        if ($periodeId) {
+            $query->where('periode_id', $periodeId);
+        }
+
+        $penilaianList = $query->get();
+
+        if ($penilaianList->isEmpty()) {
+            return $defaultData;
+        }
+
+        // Inisialisasi akumulator
+        $totalPersepsi = array_fill_keys($kategori, 0);
+        $totalHarapan = array_fill_keys($kategori, 0);
+        $count = array_fill_keys($kategori, 0);
+
+        foreach ($penilaianList as $penilaian) {
+            $nilai = $penilaian->nilai;
+            if (is_string($nilai)) {
+                $nilai = json_decode($nilai, true);
+            }
+            if (!is_array($nilai))
+                continue;
+
+            foreach ($nilai as $jawaban) {
+                if (isset($jawaban['id_pertanyaan'])) {
+                    $pertanyaan = Pertanyaan::find($jawaban['id_pertanyaan']);
+                    $kategoriItem = $pertanyaan ? $pertanyaan->kategori_fasilitas : null;
+
+                    if ($kategoriItem && in_array($kategoriItem, $kategori)) {
+                        $totalPersepsi[$kategoriItem] += (int) ($jawaban['persepsi'] ?? 0);
+                        $totalHarapan[$kategoriItem] += (int) ($jawaban['harapan'] ?? 0);
+                        $count[$kategoriItem]++;
+                    }
+                }
+            }
+        }
+
+        $result = [];
+        foreach ($kategori as $kat) {
+            $avgPersepsi = $count[$kat] > 0 ? round($totalPersepsi[$kat] / $count[$kat], 2) : 0;
+            $avgHarapan = $count[$kat] > 0 ? round($totalHarapan[$kat] / $count[$kat], 2) : 0;
+            $result[$kat] = [
+                'persepsi' => $avgPersepsi,
+                'harapan' => $avgHarapan,
+                'gap' => round($avgPersepsi - $avgHarapan, 2),
+                'label' => $kategoriLabel[$kat]
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * API: Data chart gap per dimensi (Penilaian Dosen)
+     */
+    public function chartDataDosen(Request $request)
+    {
+        $periodeId = $request->input('periode_id');
+        return response()->json($this->getChartDataPenilaianDosen($periodeId));
+    }
+
+    /**
+     * API: Data chart gap per kategori (Penilaian Fasilitas)
+     */
+    public function chartDataFasilitas(Request $request)
+    {
+        $periodeId = $request->input('periode_id');
+        return response()->json($this->getChartDataPenilaianFasilitas($periodeId));
     }
 
     /**
@@ -211,15 +287,7 @@ class DashboardController extends Controller
             });
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
-    }
-
-    /**
-     * API: Ambil data user terfilter
-     */
-    public function getUsersJson(Request $request)
-    {
-        return response()->json($this->getFilteredUsers($request));
+        return $query->orderBy('created_at', 'desc')->paginate(10);
     }
 
     /**
@@ -227,41 +295,69 @@ class DashboardController extends Controller
      */
     public function toggleActive(User $user)
     {
-        if (!in_array($user->role, ['dosen', 'mahasiswa'])) {
+        try {
+            if (!in_array($user->role, ['dosen', 'mahasiswa'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak diizinkan'
+                ], 403);
+            }
+
+            $user->is_active = !$user->is_active;
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Status user berhasil diubah',
+                'is_active' => $user->is_active
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error toggling user status: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak diizinkan'
-            ], 403);
+                'message' => 'Gagal mengubah status user'
+            ], 500);
         }
-
-        $user->is_active = !$user->is_active;
-        $user->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Status user berhasil diubah',
-            'is_active' => $user->is_active
-        ]);
     }
 
-    // Notifikasi
+    /**
+     * Mark notification as read
+     */
     public function markNotificationRead($id)
     {
-        $notif = Notifikasi::findOrFail($id);
-        $notif->is_read = true;
-        $notif->save();
-        return response()->json(['success' => true]);
+        try {
+            $notif = Notifikasi::findOrFail($id);
+            $notif->is_read = true;
+            $notif->save();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
+    /**
+     * Mark all notifications as read
+     */
     public function markAllNotificationsRead()
     {
-        Notifikasi::where('target_role', 'admin')->orWhere('target_role', 'all')->update(['is_read' => true]);
-        return response()->json(['success' => true]);
+        try {
+            Notifikasi::where('target_role', 'admin')->orWhere('target_role', 'all')->update(['is_read' => true]);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
+    /**
+     * Delete notification
+     */
     public function deleteNotification($id)
     {
-        Notifikasi::findOrFail($id)->delete();
-        return response()->json(['success' => true]);
+        try {
+            Notifikasi::findOrFail($id)->delete();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 }

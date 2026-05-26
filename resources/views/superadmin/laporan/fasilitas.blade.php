@@ -1,7 +1,7 @@
 @extends('layouts.superadmin')
 
-@section('title', 'Laporan Penilaian Dosen - SUPER ADMIN')
-@section('page_title', 'Laporan Penilaian Dosen')
+@section('title', 'Laporan Penilaian Fasilitas - Super Admin')
+@section('page_title', 'Laporan Penilaian Fasilitas')
 
 @section('content')
     <div class="container-fluid px-0">
@@ -14,7 +14,7 @@
                     </label>
                 </div>
                 <div class="col-md-6">
-                    <form method="GET" action="{{ route('super.laporan.index') }}" id="periodeForm">
+                    <form method="GET" action="{{ route('super.laporan.fasilitas') }}" id="periodeForm">
                         <select name="periode_id" class="form-select bg-light border-0 rounded-3"
                             onchange="this.form.submit()">
                             <option value="">-- Semua Periode --</option>
@@ -41,16 +41,15 @@
 
         <!-- Filter Form -->
         <div class="bg-white rounded-4 shadow-sm p-4 mb-4">
-            <form method="GET" action="{{ route('super.laporan.index') }}" id="filterForm">
+            <form method="GET" action="{{ route('super.laporan.fasilitas') }}" id="filterForm">
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">Dosen</label>
-                        <select name="dosen_id" class="form-select bg-light border-0 rounded-3">
-                            <option value="">Semua Dosen</option>
-                            @foreach($dosenList as $dosen)
-                                <option value="{{ $dosen->id }}" {{ request('dosen_id') == $dosen->id ? 'selected' : '' }}>
-                                    {{ $dosen->name }}
-                                </option>
+                        <label class="form-label fw-semibold">Mahasiswa</label>
+                        <select name="mahasiswa_id" class="form-select bg-light border-0 rounded-3">
+                            <option value="">Semua Mahasiswa</option>
+                            @foreach($mahasiswaList as $m)
+                                <option value="{{ $m->id }}" {{ request('mahasiswa_id') == $m->id ? 'selected' : '' }}>
+                                    {{ $m->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -58,10 +57,9 @@
                         <label class="form-label fw-semibold">Jurusan</label>
                         <select name="jurusan_id" class="form-select bg-light border-0 rounded-3">
                             <option value="">Semua Jurusan</option>
-                            @foreach($jurusanList as $jurusan)
-                                <option value="{{ $jurusan->id }}" {{ request('jurusan_id') == $jurusan->id ? 'selected' : '' }}>
-                                    {{ $jurusan->nama_jurusan }}
-                                </option>
+                            @foreach($jurusanList as $j)
+                                <option value="{{ $j->id }}" {{ request('jurusan_id') == $j->id ? 'selected' : '' }}>
+                                    {{ $j->nama_jurusan }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -83,15 +81,12 @@
                             value="{{ request('end_date') }}">
                     </div>
                     <div class="col-md-4 text-end">
-                        @if(request()->anyFilled(['dosen_id', 'jurusan_id', 'start_date', 'end_date']))
-                            <a href="{{ route('super.laporan.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                        @if(request()->anyFilled(['mahasiswa_id', 'jurusan_id', 'start_date', 'end_date']))
+                            <a href="{{ route('super.laporan.fasilitas') }}"
+                                class="btn btn-sm btn-outline-secondary rounded-pill">
                                 <i class="bi bi-x-circle me-1"></i>Reset
                             </a>
                         @endif
-                        <a href="{{ route('super.laporan.export-excel', request()->query()) }}"
-                            class="btn btn-success rounded-pill ms-2">
-                            <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
-                        </a>
                     </div>
                 </div>
             </form>
@@ -100,7 +95,7 @@
         <!-- Tabel -->
         <div class="bg-white rounded-4 shadow-sm p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-semibold mb-0"><i class="bi bi-table me-2 text-purple-600"></i>Data Penilaian Dosen</h5>
+                <h5 class="fw-semibold mb-0"><i class="bi bi-table me-2 text-purple-600"></i>Data Penilaian Fasilitas</h5>
                 <span class="text-muted small">Menampilkan {{ $data->firstItem() ?? 0 }} - {{ $data->lastItem() ?? 0 }} dari
                     {{ $data->total() }}</span>
             </div>
@@ -108,54 +103,38 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th width="5%">No</th>
-                            <th width="20%">Periode</th>
-                            <th width="20%">Dosen</th>
-                            <th width="15%">NIDN</th>
-                            <th width="20%">Mahasiswa</th>
-                            <th width="10%">NIM</th>
-                            <th width="10%">Rata-rata</th>
+                            <th>No</th>
+                            <th>Mahasiswa</th>
+                            <th>NIM</th>
+                            <th>Jurusan</th>
+                            <th>Rata-rata</th>
+                            <th>Tanggal</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($data as $index => $item)
                             <tr>
                                 <td class="text-center">{{ $data->firstItem() + $index }}</td>
+                                <td class="fw-medium">{{ $item->mahasiswa_nama }}</td>
+                                <td>{{ $item->mahasiswa_nim }}</td>
+                                <td>{{ $item->mahasiswa->jurusan ?? '-' }}</td>
                                 <td>
-                                    @if($item->periode)
-                                        <span class="badge bg-purple-100 text-purple-800">{{ $item->periode->nama_periode }}</span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td class="fw-medium">{{ $item->dosen_nama ?? $item->dosen->name ?? '-' }}</td>
-                                <td>{{ $item->dosen->nidn ?? '-' }}</td>
-                                <td>{{ $item->mahasiswa_nama ?? $item->mahasiswa->name ?? '-' }}</td>
-                                <td>{{ $item->mahasiswa_nim ?? $item->mahasiswa->nim ?? '-' }}</td>
-                                <td>
-                                    @php
-                                        $rating = $item->rata_rata;
-                                        $color = $rating >= 4 ? 'success' : ($rating >= 3 ? 'warning' : 'danger');
-                                    @endphp
-                                    <span class="badge bg-{{ $color }} bg-opacity-10 text-{{ $color }} rounded-pill px-3 py-2">
-                                        {{ number_format($rating, 2) }}
+                                    <span class="badge bg-purple-100 text-purple-800 rounded-pill px-3 py-1">
+                                        {{ number_format($item->rata_rata, 2) }}
                                     </span>
                                 </td>
+                                <td>{{ $item->created_at->format('d/m/Y H:i') }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                    Belum ada data penilaian
-                                </td>
+                                <td colspan="6" class="text-center py-5">Belum ada data penilaian fasilitas</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
             <div class="mt-3 d-flex justify-content-end">
-                {{ $data->appends(request()->query())->links('pagination::bootstrap-5') }}
-            </div>
+                {{ $data->appends(request()->query())->links('pagination::bootstrap-5') }}</div>
         </div>
     </div>
 @endsection

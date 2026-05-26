@@ -1,8 +1,8 @@
 @extends('layouts.public')
 
 @section('title', 'Validasi Mahasiswa - SERVQUAL POLMED')
-@section('content')
 
+@section('content')
     <style>
         * {
             margin: 0;
@@ -14,147 +14,127 @@
             font-family: 'Inter', 'Montserrat', system-ui, sans-serif;
             min-height: 100vh;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        /* Main Container - Langsung di tengah tanpa card */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -20%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
         .main-container {
-            flex: 1;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 100%;
             padding: 2rem;
         }
 
-        /* Logo */
-        .logo {
+        .logo-section {
             text-align: center;
             margin-bottom: 2rem;
         }
 
-        .logo img {
-            height: 70px;
-            width: auto;
-            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+        .logo-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 0.8rem 2rem;
+            border-radius: 100px;
+            margin-bottom: 1rem;
         }
 
-        /* Title */
-        .title {
-            text-align: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .title h1 {
-            font-size: 2rem;
-            font-weight: 700;
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
             color: white;
-            margin-bottom: 0.5rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
             letter-spacing: -0.5px;
         }
 
-        .title p {
-            font-size: 0.9rem;
+        .logo-sub {
+            font-size: 0.7rem;
             color: rgba(255, 255, 255, 0.7);
+            margin-top: 0.3rem;
         }
 
-        /* Badge */
-        .badge {
+        .title-section {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .title-section h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .title-section p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .info-badge {
             text-align: center;
             margin-bottom: 2rem;
         }
 
-        .badge span {
-            display: inline-block;
+        .info-badge span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
-            padding: 0.3rem 1rem;
+            padding: 0.4rem 1.2rem;
             border-radius: 50px;
             font-size: 0.7rem;
             font-weight: 600;
             letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.9);
+            color: rgba(255, 255, 255, 0.95);
         }
 
-        /* Warning Banner - MASA BERLAKU HABIS */
-        .warning-banner {
-            background: rgba(239, 68, 68, 0.25);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(239, 68, 68, 0.5);
-            border-radius: 16px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            animation: pulse 1.5s infinite;
-        }
-
-        .warning-banner i {
-            font-size: 2rem;
-            color: #fca5a5;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-
-        .warning-banner .warning-title {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: #fca5a5;
-            margin-bottom: 0.5rem;
-        }
-
-        .warning-banner .warning-text {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .warning-banner .contact-info {
-            margin-top: 0.75rem;
-            font-size: 0.8rem;
-            color: #fca5a5;
-        }
-
-        .warning-banner .contact-info i {
-            font-size: 0.8rem;
-            display: inline;
-            margin-right: 0.3rem;
-        }
-
-        /* Info Banner - SISA WAKTU */
-        .info-banner {
-            background: rgba(192, 132, 252, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(192, 132, 252, 0.4);
-            border-radius: 16px;
-            padding: 0.75rem 1rem;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-
-        .info-banner .days-left {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: #c084fc;
-        }
-
-        .info-banner .info-text {
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        /* Form Wrapper - DITENGAHKAN */
         .form-wrapper {
-            max-width: 400px;
+            max-width: 420px;
             width: 100%;
             margin: 0 auto;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
         }
 
-        /* Form Group */
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
         }
 
         .form-label {
@@ -162,17 +142,21 @@
             font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 0.4rem;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-label i {
+            margin-right: 0.3rem;
         }
 
         .form-input {
             width: 100%;
             padding: 0.9rem 1rem;
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
             color: white;
             font-size: 0.95rem;
             transition: all 0.3s ease;
@@ -180,18 +164,13 @@
         }
 
         .form-input:focus {
-            border-color: #c084fc;
+            border-color: #a855f7;
             background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
+            box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.2);
         }
 
         .form-input::placeholder {
             color: rgba(255, 255, 255, 0.4);
-        }
-
-        .form-input:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
         }
 
         input[type="date"] {
@@ -203,44 +182,35 @@
             cursor: pointer;
         }
 
-        input[type="date"]:disabled::-webkit-calendar-picker-indicator {
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-
-        /* Button */
         .btn-submit {
             width: 100%;
             padding: 0.9rem;
             background: linear-gradient(135deg, #8b5cf6, #6d28d9);
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             color: white;
             font-weight: 700;
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
             margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .btn-submit:hover {
             transform: translateY(-2px);
             background: linear-gradient(135deg, #7c3aed, #5b21b6);
-            box-shadow: 0 10px 25px rgba(109, 40, 217, 0.4);
+            box-shadow: 0 10px 30px rgba(109, 40, 217, 0.4);
         }
 
-        .btn-submit:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Divider */
         .divider {
             display: flex;
             align-items: center;
             text-align: center;
-            margin: 1.2rem 0;
+            margin: 1.5rem 0;
             color: rgba(255, 255, 255, 0.3);
             font-size: 0.7rem;
         }
@@ -254,9 +224,9 @@
 
         .divider span {
             margin: 0 1rem;
+            font-weight: 600;
         }
 
-        /* Link Login */
         .login-link {
             text-align: center;
         }
@@ -270,7 +240,7 @@
             padding: 0.8rem;
             background: transparent;
             border: 1.5px solid rgba(255, 255, 255, 0.25);
-            border-radius: 12px;
+            border-radius: 14px;
             color: rgba(255, 255, 255, 0.9);
             font-weight: 600;
             font-size: 0.9rem;
@@ -279,13 +249,12 @@
         }
 
         .login-link a:hover {
-            border-color: #c084fc;
-            background: rgba(192, 132, 252, 0.1);
+            border-color: #a855f7;
+            background: rgba(168, 85, 247, 0.1);
             transform: translateY(-2px);
             color: white;
         }
 
-        /* Info Note */
         .info-note {
             text-align: center;
             margin-top: 1rem;
@@ -298,20 +267,22 @@
             margin-right: 0.3rem;
         }
 
-        /* Alert Error */
         .alert-error {
             background: rgba(239, 68, 68, 0.2);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 12px;
+            border-radius: 14px;
             color: #fca5a5;
-            padding: 0.7rem 1rem;
+            padding: 0.8rem 1rem;
             margin-bottom: 1rem;
             font-size: 0.8rem;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
-        /* Statistik Baris - HANYA SATU BARIS DI BAWAH FORM */
         .stats-row {
             display: flex;
             justify-content: center;
@@ -322,6 +293,17 @@
 
         .stat-item {
             text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 0.8rem 1.2rem;
+            min-width: 100px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .stat-value {
@@ -341,12 +323,12 @@
             margin-top: 0.2rem;
         }
 
-        /* Footer SEDERHANA */
         .footer {
             text-align: center;
             padding: 1rem;
             width: 100%;
             background: transparent;
+            margin-top: 2rem;
         }
 
         .footer p {
@@ -355,7 +337,6 @@
             margin: 0;
         }
 
-        /* Animasi */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -368,94 +349,69 @@
             }
         }
 
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.8;
-            }
-        }
-
         .main-container {
             animation: fadeInUp 0.6s ease-out;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .stats-row {
-                gap: 1.5rem;
+                gap: 1rem;
+            }
+
+            .stat-item {
+                padding: 0.5rem 0.8rem;
+                min-width: 70px;
             }
 
             .stat-value {
-                font-size: 1.3rem;
+                font-size: 1.2rem;
             }
 
-            .title h1 {
+            .title-section h1 {
                 font-size: 1.5rem;
             }
 
-            .logo img {
-                height: 50px;
+            .form-wrapper {
+                padding: 1.5rem;
             }
         }
     </style>
 
-    <!-- Main Container - Langsung di tengah -->
     <div class="main-container">
-
-        @php
-            $expiryDate = \Carbon\Carbon::create(2026, 5, 26, 23, 59, 59);
-            $now = \Carbon\Carbon::now();
-            $canAccess = $now->lessThanOrEqualTo($expiryDate);
-            $remainingDays = $canAccess ? $now->diffInDays($expiryDate) : 0;
-        @endphp
-
-        <!-- Warning Banner - Jika Masa Berlaku Habis -->
-        @if(!$canAccess)
-        <div class="warning-banner">
-            <i class="bi bi-calendar-x-fill"></i>
-            <div class="warning-title">⚠️ AKSES DITOLAK</div>
-            <div class="warning-text">
-                Masa berlaku sistem kuesioner telah berakhir pada <strong>26 Mei 2026</strong>.
-                <br>Anda tidak dapat melanjutkan pengisian kuesioner.
-            </div>
-            <div class="contact-info">
-                <i class="bi bi-envelope-fill"></i> Silakan hubungi administrator untuk informasi lebih lanjut.
-            </div>
-        </div>
-        @endif
-
-        
-
-        <!-- Form - DI TENGAH -->
         <div class="form-wrapper">
             @if(session('error'))
                 <div class="alert-error">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ session('error') }}
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="alert-error">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    {{ $errors->first() }}
                 </div>
             @endif
 
             <form method="POST" action="{{ route('public.validasi') }}" id="validasiForm">
                 @csrf
                 <div class="form-group">
-                    <label class="form-label">NIM</label>
-                    <input type="text" name="nim" class="form-input" placeholder="Masukkan NIM Anda"
-                        value="{{ old('nim') }}" {{ !$canAccess ? 'disabled' : '' }} required autofocus>
+                    <label class="form-label">
+                        <i class="bi bi-credit-card"></i> NIM
+                    </label>
+                    <input type="text" name="nim" class="form-input" placeholder="Contoh: 2024123456"
+                        value="{{ old('nim') }}" required autofocus maxlength="20">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Tanggal Lahir</label>
-                    <input type="date" name="tanggal_lahir" class="form-input" value="{{ old('tanggal_lahir') }}" 
-                        {{ !$canAccess ? 'disabled' : '' }} required>
+                    <label class="form-label">
+                        <i class="bi bi-calendar-date"></i> Tanggal Lahir
+                    </label>
+                    <input type="date" name="tanggal_lahir" class="form-input" value="{{ old('tanggal_lahir') }}" required>
                 </div>
 
-                <button type="submit" class="btn-submit" {{ !$canAccess ? 'disabled' : '' }}>
-                    @if($canAccess)
-                        <i class="bi bi-arrow-right-circle me-2"></i> Lanjutkan
-                    @else
-                        <i class="bi bi-lock-fill me-2"></i> Akses Ditolak
-                    @endif
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="bi bi-arrow-right-circle"></i> Lanjutkan ke Kuesioner
                 </button>
             </form>
 
@@ -470,11 +426,10 @@
             </div>
 
             <div class="info-note">
-                <i class="bi bi-info-circle"></i> Mahasiswa cukup masukkan NIM dan Tanggal Lahir
+                <i class="bi bi-info-circle"></i> Mahasiswa cukup memasukkan NIM dan Tanggal Lahir
             </div>
         </div>
 
-        <!-- Statistik - Hanya satu baris -->
         <div class="stats-row">
             <div class="stat-item">
                 <div class="stat-value">{{ number_format($totalDosen ?? 0) }}</div>
@@ -493,8 +448,49 @@
                 <div class="stat-label">Kepuasan</div>
             </div>
         </div>
+
+        <div class="footer">
+            <p>&copy; {{ date('Y') }} SERVQUAL POLMED. All rights reserved.</p>
+        </div>
     </div>
 
-    <!-- Footer Sederhana -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('validasiForm');
+            const submitBtn = document.getElementById('submitBtn');
 
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    const nimInput = document.querySelector('input[name="nim"]');
+                    const tanggalInput = document.querySelector('input[name="tanggal_lahir"]');
+
+                    if (nimInput && !nimInput.value.trim()) {
+                        e.preventDefault();
+                        Swal.fire('Error', 'NIM harus diisi', 'error');
+                        nimInput.focus();
+                        return;
+                    }
+
+                    if (nimInput && nimInput.value.trim().length < 10) {
+                        e.preventDefault();
+                        Swal.fire('Error', 'NIM minimal 10 digit', 'error');
+                        nimInput.focus();
+                        return;
+                    }
+
+                    if (tanggalInput && !tanggalInput.value) {
+                        e.preventDefault();
+                        Swal.fire('Error', 'Tanggal lahir harus diisi', 'error');
+                        tanggalInput.focus();
+                        return;
+                    }
+
+                    if (!e.defaultPrevented) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Memproses...';
+                    }
+                });
+            }
+        });
+    </script>
 @endsection

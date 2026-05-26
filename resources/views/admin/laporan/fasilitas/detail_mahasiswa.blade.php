@@ -1,41 +1,41 @@
 @extends('layouts.admin')
 
-@section('title', 'Detail Penilaian Dosen - Admin')
-@section('page_title', 'Detail Penilaian Dosen')
+@section('title', 'Detail Mahasiswa - Penilaian Fasilitas')
+@section('page_title', 'Detail Mahasiswa')
 
 @section('content')
     <div class="container-fluid px-0">
         <div class="bg-white rounded-4 shadow-sm p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-semibold mb-0"><i class="bi bi-person-badge me-2 text-purple-600"></i>Detail Dosen</h5>
-                <a href="{{ route('admin.laporan.index') }}" class="btn btn-secondary rounded-pill"><i
+            <div class="d-flex justify-content-between mb-4">
+                <h5 class="fw-semibold mb-0"><i class="bi bi-person me-2 text-success"></i>Detail Mahasiswa</h5>
+                <a href="{{ route('admin.laporan.fasilitas.index') }}" class="btn btn-secondary rounded-pill"><i
                         class="bi bi-arrow-left me-1"></i>Kembali</a>
             </div>
 
-            <!-- Info Dosen -->
+            <!-- Info Mahasiswa -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
                     <div class="bg-light rounded-3 p-3">
-                        <div class="text-muted small">Nama Dosen</div>
-                        <div class="fw-semibold">{{ $dosen->name }}</div>
+                        <div class="text-muted small">Nama</div>
+                        <div class="fw-semibold">{{ $mahasiswa->name }}</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="bg-light rounded-3 p-3">
-                        <div class="text-muted small">NIDN</div>
-                        <div class="fw-semibold">{{ $dosen->nidn ?? '-' }}</div>
+                        <div class="text-muted small">NIM</div>
+                        <div class="fw-semibold">{{ $mahasiswa->nim ?? '-' }}</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="bg-light rounded-3 p-3">
-                        <div class="text-muted small">Jurusan</div>
-                        <div class="fw-semibold">{{ $dosen->jurusan ?? $dosen->prodi->jurusan->nama_jurusan ?? '-' }}</div>
+                        <div class="text-muted small">Kelas</div>
+                        <div class="fw-semibold">{{ $mahasiswa->kelas ?? '-' }}</div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="bg-light rounded-3 p-3">
                         <div class="text-muted small">Rata-rata</div>
-                        <div class="fw-semibold text-purple-600">{{ number_format($statistik['rata_rata'], 2) }}</div>
+                        <div class="fw-semibold text-success">{{ number_format($statistik['rata_rata'], 2) }}</div>
                     </div>
                 </div>
             </div>
@@ -45,13 +45,13 @@
                 <div class="col-md-4">
                     <div class="bg-white border rounded-3 p-3 text-center">
                         <div class="text-muted small">Total Penilaian</div>
-                        <h4 class="fw-bold text-purple-600 mb-0">{{ number_format($statistik['total']) }}</h4>
+                        <h4 class="fw-bold text-success mb-0">{{ number_format($statistik['total']) }}</h4>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="bg-white border rounded-3 p-3 text-center">
                         <div class="text-muted small">Tertinggi</div>
-                        <h4 class="fw-bold text-success mb-0">{{ number_format($statistik['tertinggi'], 2) }}</h4>
+                        <h4 class="fw-bold text-warning mb-0">{{ number_format($statistik['tertinggi'], 2) }}</h4>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -62,34 +62,33 @@
                 </div>
             </div>
 
-            <!-- Chart Gap per Dimensi -->
+            <!-- Chart Gap -->
             <div class="bg-light rounded-3 p-3 mb-4">
-                <canvas id="dosenChart" height="250"></canvas>
+                <canvas id="mahasiswaChart" height="250"></canvas>
             </div>
 
             <!-- Riwayat Penilaian dengan Jawaban Langsung -->
-            <h5 class="fw-semibold mb-3">Riwayat Penilaian Mahasiswa</h5>
+            <h5 class="fw-semibold mb-3">Riwayat Penilaian Fasilitas</h5>
 
             @forelse($penilaian as $index => $p)
                 <div class="card mb-4 border-0 rounded-4 shadow-sm overflow-hidden">
-                    <div class="card-header bg-purple-100 border-0 py-3">
+                    <div class="card-header bg-success bg-opacity-10 border-0 py-3">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <div>
-                                <i class="bi bi-person me-2 text-purple-600"></i>
-                                <strong>Mahasiswa:</strong> {{ $p->mahasiswa_nama }}
-                            </div>
-                            <div>
-                                <i class="bi bi-credit-card me-1 text-muted"></i>
-                                <strong>NIM:</strong> {{ $p->mahasiswa_nim }}
-                            </div>
-                            <div>
-                                <i class="bi bi-book me-1 text-muted"></i>
-                                <strong>Kelas:</strong> {{ $p->kelas ?? '-' }}
+                                <i class="bi bi-calendar-week me-2 text-success"></i>
+                                <strong>Periode:</strong>
+                                @php $periode = \App\Models\KuesionerPeriode::find($p->periode_id); @endphp
+                                @if($periode)
+                                    <span
+                                        class="badge bg-success bg-opacity-10 text-success ms-1">{{ $periode->nama_periode }}</span>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
                             </div>
                             <div>
                                 <i class="bi bi-star-fill me-1 text-warning"></i>
                                 <strong>Rata-rata:</strong>
-                                <span class="badge bg-purple-600 ms-1">{{ number_format($p->rata_rata, 2) }}</span>
+                                <span class="badge bg-success ms-1">{{ number_format($p->rata_rata, 2) }}</span>
                             </div>
                             <div>
                                 <i class="bi bi-clock me-1 text-muted"></i>
@@ -104,7 +103,7 @@
                                     <tr>
                                         <th width="5%">No</th>
                                         <th width="55%">Pertanyaan</th>
-                                        <th width="10%">Dimensi</th>
+                                        <th width="10%">Kategori</th>
                                         <th width="10%">Harapan</th>
                                         <th width="10%">Persepsi</th>
                                         <th width="10%">Gap</th>
@@ -113,8 +112,7 @@
                                 <tbody id="jawaban-{{ $p->id }}">
                                     <tr>
                                         <td colspan="6" class="text-center py-3">
-                                            <div class="spinner-border spinner-border-sm text-purple-600 me-2" role="status">
-                                            </div>
+                                            <div class="spinner-border spinner-border-sm text-success me-2" role="status"></div>
                                             Memuat jawaban...
                                         </td>
                                     </tr>
@@ -126,7 +124,7 @@
             @empty
                 <div class="alert alert-light text-center py-5">
                     <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
-                    Belum ada penilaian untuk dosen ini
+                    Belum ada penilaian fasilitas untuk mahasiswa ini
                 </div>
             @endforelse
 
@@ -140,19 +138,19 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Chart untuk dosen
+        // Chart untuk mahasiswa
         let chartData = @json($chartData);
-        let labels = Object.keys(chartData);
-        let persepsi = labels.map(k => chartData[k].persepsi);
-        let harapan = labels.map(k => chartData[k].harapan);
+        let labels = Object.keys(chartData).map(k => chartData[k].label);
+        let persepsi = Object.keys(chartData).map(k => chartData[k].persepsi);
+        let harapan = Object.keys(chartData).map(k => chartData[k].harapan);
 
-        new Chart(document.getElementById('dosenChart'), {
+        new Chart(document.getElementById('mahasiswaChart'), {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'Persepsi (Kinerja)', data: persepsi, backgroundColor: '#8b5cf6', borderRadius: 8 },
-                    { label: 'Harapan', data: harapan, backgroundColor: '#c084fc', borderRadius: 8 }
+                    { label: 'Persepsi (Kinerja)', data: persepsi, backgroundColor: '#28a745', borderRadius: 8 },
+                    { label: 'Harapan', data: harapan, backgroundColor: '#20c997', borderRadius: 8 }
                 ]
             },
             options: {
@@ -172,7 +170,7 @@
             let penilaianIds = @json($penilaian->pluck('id'));
 
             penilaianIds.forEach(function (penilaianId) {
-                axios.get('{{ url("/admin/laporan/jawaban") }}/' + penilaianId)
+                axios.get('/admin/laporan-fasilitas/jawaban/' + penilaianId)
                     .then(res => {
                         if (res.data.success) {
                             let jawaban = res.data.data.jawaban;
@@ -189,7 +187,7 @@
                                         <tr>
                                             <td class="text-center">${idx + 1}</td>
                                             <td>${item.pertanyaan}</td>
-                                            <td class="text-center">${item.dimensi || '-'}</td>
+                                            <td class="text-center">${item.kategori || '-'}</td>
                                             <td class="text-center">${item.harapan}</td>
                                             <td class="text-center">${item.persepsi}</td>
                                             <td class="text-center ${gapClass} fw-bold">${gapText}</td>

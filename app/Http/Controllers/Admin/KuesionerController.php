@@ -21,14 +21,24 @@ class KuesionerController extends Controller
         $targetJurusan = SystemSetting::get('target_jurusan', 'all');
         $tujuan = SystemSetting::get('tujuan_kuesioner', '');
 
-        $periode = KuesionerPeriode::orderBy('created_at', 'desc')->get();
+        $periode = KuesionerPeriode::with('prodi.jurusan')->orderBy('created_at', 'desc')->get();
         $jurusanList = Jurusan::orderBy('nama_jurusan')->get();
-        $prodiList = Prodi::orderBy('nama_prodi')->get();
+        $prodiList = Prodi::with('jurusan')->orderBy('nama_prodi')->get();
         $jenjangList = [
             'sarjana' => 'Sarjana',
             'pascasarjana' => 'Pascasarjana',
             'internasional' => 'Internasional',
             'all' => 'Semua Jenjang'
+        ];
+        $targetRoleList = [
+            'mahasiswa' => 'Mahasiswa',
+            'dosen' => 'Dosen',
+            'both' => 'Mahasiswa & Dosen'
+        ];
+        $statusList = [
+            'draft' => 'Draft',
+            'aktif' => 'Aktif',
+            'tutup' => 'Tutup'
         ];
 
         return view('admin.kuesioner.index', compact(
@@ -38,7 +48,9 @@ class KuesionerController extends Controller
             'periode',
             'jurusanList',
             'prodiList',
-            'jenjangList'
+            'jenjangList',
+            'targetRoleList',
+            'statusList'
         ));
     }
 
@@ -53,7 +65,7 @@ class KuesionerController extends Controller
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'status' => 'required|in:draft,aktif,tutup',
             'target_role' => 'required|in:mahasiswa,dosen,both',
-            'target_jurusan' => 'nullable|string|max:100',
+            'target_jurusan_id' => 'nullable|exists:jurusan,id',
             'target_prodi_id' => 'nullable|exists:prodi,id',
             'target_jenjang' => 'required|in:sarjana,pascasarjana,internasional,all',
             'tujuan' => 'nullable|string',
@@ -63,17 +75,24 @@ class KuesionerController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $periode = KuesionerPeriode::create($request->only([
-            'nama_periode',
-            'tanggal_mulai',
-            'tanggal_selesai',
-            'status',
-            'target_role',
-            'target_jurusan',
-            'target_prodi_id',
-            'target_jenjang',
-            'tujuan'
-        ]));
+        // Ambil nama jurusan dari ID
+        $targetJurusanName = null;
+        if ($request->target_jurusan_id) {
+            $jurusan = Jurusan::find($request->target_jurusan_id);
+            $targetJurusanName = $jurusan ? $jurusan->nama_jurusan : null;
+        }
+
+        $periode = KuesionerPeriode::create([
+            'nama_periode' => $request->nama_periode,
+            'tanggal_mulai' => $request->tanggal_mulai,
+            'tanggal_selesai' => $request->tanggal_selesai,
+            'status' => $request->status,
+            'target_role' => $request->target_role,
+            'target_jurusan' => $targetJurusanName,
+            'target_prodi_id' => $request->target_prodi_id,
+            'target_jenjang' => $request->target_jenjang,
+            'tujuan' => $request->tujuan,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -83,7 +102,7 @@ class KuesionerController extends Controller
     }
 
     /**
-     * Update periode (targeting, tanggal, status, dll)
+     * Update periode
      */
     public function updatePeriode(Request $request, $id)
     {
@@ -95,7 +114,7 @@ class KuesionerController extends Controller
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'status' => 'required|in:draft,aktif,tutup',
             'target_role' => 'required|in:mahasiswa,dosen,both',
-            'target_jurusan' => 'nullable|string|max:100',
+            'target_jurusan_id' => 'nullable|exists:jurusan,id',
             'target_prodi_id' => 'nullable|exists:prodi,id',
             'target_jenjang' => 'required|in:sarjana,pascasarjana,internasional,all',
             'tujuan' => 'nullable|string',
@@ -105,17 +124,24 @@ class KuesionerController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $periode->update($request->only([
-            'nama_periode',
-            'tanggal_mulai',
-            'tanggal_selesai',
-            'status',
-            'target_role',
-            'target_jurusan',
-            'target_prodi_id',
-            'target_jenjang',
-            'tujuan'
-        ]));
+        // Ambil nama jurusan dari ID
+        $targetJurusanName = null;
+        if ($request->target_jurusan_id) {
+            $jurusan = Jurusan::find($request->target_jurusan_id);
+            $targetJurusanName = $jurusan ? $jurusan->nama_jurusan : null;
+        }
+
+        $periode->update([
+            'nama_periode' => $request->nama_periode,
+            'tanggal_mulai' => $request->tanggal_mulai,
+            'tanggal_selesai' => $request->tanggal_selesai,
+            'status' => $request->status,
+            'target_role' => $request->target_role,
+            'target_jurusan' => $targetJurusanName,
+            'target_prodi_id' => $request->target_prodi_id,
+            'target_jenjang' => $request->target_jenjang,
+            'tujuan' => $request->tujuan,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -175,13 +201,13 @@ class KuesionerController extends Controller
     // ==================== PENGATURAN GLOBAL ====================
 
     /**
-     * Update pengaturan global kuesioner (status, target jurusan, tujuan)
+     * Update pengaturan global kuesioner
      */
     public function updateSettings(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'kuesioner_status' => 'required|in:open,closed',
-            'target_jurusan' => 'nullable|string|max:100',
+            'target_jurusan_id' => 'nullable|exists:jurusan,id',
             'tujuan_kuesioner' => 'nullable|string',
         ]);
 
@@ -189,8 +215,17 @@ class KuesionerController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // Ambil nama jurusan dari ID
+        $targetJurusanName = null;
+        if ($request->target_jurusan_id) {
+            $jurusan = Jurusan::find($request->target_jurusan_id);
+            $targetJurusanName = $jurusan ? $jurusan->nama_jurusan : 'all';
+        } else {
+            $targetJurusanName = 'all';
+        }
+
         SystemSetting::set('kuesioner_status', $request->kuesioner_status);
-        SystemSetting::set('target_jurusan', $request->target_jurusan ?? '');
+        SystemSetting::set('target_jurusan', $targetJurusanName);
         SystemSetting::set('tujuan_kuesioner', $request->tujuan_kuesioner ?? '');
 
         return response()->json([
@@ -214,25 +249,21 @@ class KuesionerController extends Controller
         ]);
     }
 
-    // ==================== API UNTUK DROPDOWN PRODI (CASCADING) ====================
+    // ==================== API UNTUK DROPDOWN PRODI ====================
 
     /**
-     * API: Ambil daftar prodi berdasarkan jurusan_id (untuk dropdown cascade)
-     * @param int $jurusan_id
-     * @return \Illuminate\Http\JsonResponse
+     * API: Ambil daftar prodi berdasarkan jurusan_id
      */
     public function getProdiByJurusan($jurusan_id)
     {
         $prodi = Prodi::where('jurusan_id', $jurusan_id)
             ->orderBy('nama_prodi')
-            ->get(['id', 'nama_prodi']);
+            ->get(['id', 'nama_prodi', 'jenjang']);
         return response()->json($prodi);
     }
 
     /**
-     * API: Ambil detail prodi berdasarkan id (untuk keperluan edit periode)
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
+     * API: Ambil detail prodi
      */
     public function getProdiDetail($id)
     {
@@ -242,6 +273,7 @@ class KuesionerController extends Controller
             'nama_prodi' => $prodi->nama_prodi,
             'jurusan_id' => $prodi->jurusan_id,
             'jenjang' => $prodi->jenjang,
+            'jurusan_nama' => $prodi->jurusan->nama_jurusan
         ]);
     }
 }

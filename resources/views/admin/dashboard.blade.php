@@ -7,7 +7,7 @@
     <div class="container-fluid px-0">
         <!-- Filter Periode -->
         <div class="bg-white rounded-4 shadow-sm p-3 mb-4">
-            <div class="row align-items-center">
+            <div class="row align-items-center g-3">
                 <div class="col-md-3">
                     <label class="form-label fw-semibold mb-0">
                         <i class="bi bi-calendar-week me-2 text-purple-600"></i>Periode Kuesioner
@@ -21,9 +21,9 @@
                             @foreach($periodeList as $periode)
                                 <option value="{{ $periode->id }}" {{ $periodeTerpilih && $periodeTerpilih->id == $periode->id ? 'selected' : '' }}>
                                     {{ $periode->nama_periode }}
-                                    ({{ $periode->tanggal_mulai->format('d/m/Y') }} -
-                                    {{ $periode->tanggal_selesai->format('d/m/Y') }})
-                                    @if($periode->is_active) - <span class="text-success">Aktif</span> @endif
+                                    ({{ \Carbon\Carbon::parse($periode->tanggal_mulai)->format('d/m/Y') }} -
+                                    {{ \Carbon\Carbon::parse($periode->tanggal_selesai)->format('d/m/Y') }})
+                                    @if($periode->is_active) - Aktif @endif
                                 </option>
                             @endforeach
                         </select>
@@ -78,9 +78,10 @@
                     style="background: linear-gradient(135deg, #ffffff 0%, #f8f4ff 100%);">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <p class="text-muted mb-1 small fw-semibold text-uppercase">Penilaian Dosen (Periode Ini)</p>
+                            <p class="text-muted mb-1 small fw-semibold text-uppercase">Penilaian Dosen</p>
                             <h3 class="mb-0 fw-bold text-purple-800 display-6">{{ number_format($totalPenilaianDosen) }}
                             </h3>
+                            <small class="text-muted">Rata-rata: {{ number_format($avgKepuasanDosen, 1) }}/5</small>
                         </div>
                         <div class="rounded-circle p-3" style="background: rgba(76, 29, 149, 0.1);">
                             <i class="bi bi-star-fill text-purple-600 fs-4"></i>
@@ -93,29 +94,52 @@
                     style="background: linear-gradient(135deg, #ffffff 0%, #fff8e1 100%);">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <p class="text-muted mb-1 small fw-semibold text-uppercase">Rata-rata Kepuasan</p>
-                            <h3 class="mb-0 fw-bold text-warning display-6">{{ number_format($avgKepuasan, 1) }}<span
-                                    class="fs-5 text-muted">/5</span></h3>
+                            <p class="text-muted mb-1 small fw-semibold text-uppercase">Penilaian Fasilitas</p>
+                            <h3 class="mb-0 fw-bold text-warning display-6">{{ number_format($totalPenilaianFasilitas) }}
+                            </h3>
+                            <small class="text-muted">Rata-rata: {{ number_format($avgKepuasanFasilitas, 1) }}/5</small>
                         </div>
                         <div class="rounded-circle p-3" style="background: rgba(251, 140, 0, 0.1);">
-                            <i class="bi bi-bar-chart-steps text-warning fs-4"></i>
+                            <i class="bi bi-building text-warning fs-4"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Chart SERVQUAL Gap -->
+        <!-- Chart SERVQUAL Gap - Penilaian Dosen -->
         <div class="row mb-5">
             <div class="col-12">
                 <div class="bg-white rounded-4 shadow-sm p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                        <h5 class="fw-semibold mb-0"><i class="bi bi-graph-up me-2 text-purple-600"></i>Analisis Gap
-                            SERVQUAL (Persepsi vs Harapan)</h5>
+                        <h5 class="fw-semibold mb-0">
+                            <i class="bi bi-graph-up me-2 text-purple-600"></i>Analisis Gap SERVQUAL - Penilaian Dosen
+                        </h5>
                         <span class="badge bg-purple-100 text-purple-800 px-3 py-2 rounded-pill">Metode SERVQUAL</span>
                     </div>
                     <div class="position-relative">
-                        <canvas id="gapChart" height="120" style="max-height: 400px; width: 100%;"></canvas>
+                        <canvas id="gapChartDosen" height="120" style="max-height: 400px; width: 100%;"></canvas>
+                    </div>
+                    <div class="text-muted small mt-3 text-center">
+                        <i class="bi bi-info-circle"></i> *Gap negatif menunjukkan layanan di bawah harapan
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Gap - Penilaian Fasilitas -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="bg-white rounded-4 shadow-sm p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h5 class="fw-semibold mb-0">
+                            <i class="bi bi-building me-2 text-success"></i>Analisis Gap - Penilaian Fasilitas
+                        </h5>
+                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">Metode
+                            SERVQUAL</span>
+                    </div>
+                    <div class="position-relative">
+                        <canvas id="gapChartFasilitas" height="120" style="max-height: 400px; width: 100%;"></canvas>
                     </div>
                     <div class="text-muted small mt-3 text-center">
                         <i class="bi bi-info-circle"></i> *Gap negatif menunjukkan layanan di bawah harapan
@@ -203,11 +227,13 @@
                                 <td>{{ $user->prodi->jurusan->nama_jurusan ?? '-' }}</td>
                                 <td>
                                     @if($user->is_active)
-                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1"><i
-                                                class="bi bi-check-circle-fill me-1"></i>Aktif</span>
+                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Aktif
+                                        </span>
                                     @else
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-1"><i
-                                                class="bi bi-x-circle-fill me-1"></i>Nonaktif</span>
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-1">
+                                            <i class="bi bi-x-circle-fill me-1"></i>Nonaktif
+                                        </span>
                                     @endif
                                 </td>
                                 <td>
@@ -233,123 +259,232 @@
     </div>
 @endsection
 
+@push('styles')
+    <style>
+        .text-purple-600 {
+            color: #4c1d95;
+        }
+
+        .bg-purple-100 {
+            background-color: #f3e8ff;
+        }
+
+        .text-purple-800 {
+            color: #4c1d95;
+        }
+
+        .btn-outline-purple {
+            color: #4c1d95;
+            border-color: #4c1d95;
+        }
+
+        .btn-outline-purple:hover {
+            background-color: #4c1d95;
+            color: white;
+        }
+
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+        }
+    </style>
+@endpush
+
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Data dari server
-        let chartDataFromServer = @json($chartData);
+        document.addEventListener('DOMContentLoaded', function () {
+            // ==================== CHART PENILAIAN DOSEN ====================
+            let chartDataDosenFromServer = @json($chartDataDosen);
+            console.log('Data Dosen dari server:', chartDataDosenFromServer);
 
-        console.log('Data dari server:', chartDataFromServer);
+            let chartDataDosen = chartDataDosenFromServer;
+            if (!chartDataDosen || Object.keys(chartDataDosen).length === 0) {
+                chartDataDosen = {
+                    'Tangible': { persepsi: 0, harapan: 0, gap: 0 },
+                    'Reliability': { persepsi: 0, harapan: 0, gap: 0 },
+                    'Responsiveness': { persepsi: 0, harapan: 0, gap: 0 },
+                    'Assurance': { persepsi: 0, harapan: 0, gap: 0 },
+                    'Empathy': { persepsi: 0, harapan: 0, gap: 0 }
+                };
+            }
 
-        // Gunakan data dari server atau data dummy jika kosong
-        let chartData = chartDataFromServer;
+            let labelsDosen = Object.keys(chartDataDosen);
+            let persepsiDosen = labelsDosen.map(function (d) { return chartDataDosen[d].persepsi; });
+            let harapanDosen = labelsDosen.map(function (d) { return chartDataDosen[d].harapan; });
 
-        if (!chartData || Object.keys(chartData).length === 0) {
-            chartData = {
-                'Tangible': { persepsi: 3.5, harapan: 4.2, gap: -0.7 },
-                'Reliability': { persepsi: 3.8, harapan: 4.5, gap: -0.7 },
-                'Responsiveness': { persepsi: 3.2, harapan: 4.0, gap: -0.8 },
-                'Assurance': { persepsi: 4.0, harapan: 4.3, gap: -0.3 },
-                'Empathy': { persepsi: 3.5, harapan: 4.1, gap: -0.6 }
-            };
-            console.log('Menggunakan data dummy');
-        }
-
-        let labels = Object.keys(chartData);
-        let persepsiValues = labels.map(function (d) { return chartData[d].persepsi; });
-        let harapanValues = labels.map(function (d) { return chartData[d].harapan; });
-
-        console.log('Labels:', labels);
-        console.log('Persepsi:', persepsiValues);
-        console.log('Harapan:', harapanValues);
-
-        // Render chart
-        let ctx = document.getElementById('gapChart').getContext('2d');
-        let chartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Persepsi (Kinerja)',
-                        data: persepsiValues,
-                        backgroundColor: '#8b5cf6',
-                        borderRadius: 8,
-                        barPercentage: 0.65,
-                        categoryPercentage: 0.8
-                    },
-                    {
-                        label: 'Harapan',
-                        data: harapanValues,
-                        backgroundColor: '#c084fc',
-                        borderRadius: 8,
-                        barPercentage: 0.65,
-                        categoryPercentage: 0.8
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                let label = context.dataset.label || '';
-                                let value = context.raw;
-                                let index = context.dataIndex;
-                                if (context.dataset.label === 'Persepsi (Kinerja)') {
-                                    let gap = (value - harapanValues[index]).toFixed(2);
-                                    return label + ': ' + value + ' (Gap: ' + gap + ')';
-                                }
-                                return label + ': ' + value;
-                            }
+            // Render chart dosen
+            let ctxDosen = document.getElementById('gapChartDosen').getContext('2d');
+            new Chart(ctxDosen, {
+                type: 'bar',
+                data: {
+                    labels: labelsDosen,
+                    datasets: [
+                        {
+                            label: 'Persepsi (Kinerja)',
+                            data: persepsiDosen,
+                            backgroundColor: '#8b5cf6',
+                            borderRadius: 8,
+                            barPercentage: 0.65,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: 'Harapan',
+                            data: harapanDosen,
+                            backgroundColor: '#c084fc',
+                            borderRadius: 8,
+                            barPercentage: 0.65,
+                            categoryPercentage: 0.8
                         }
-                    },
-                    legend: { position: 'top' }
+                    ]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 5,
-                        title: { display: true, text: 'Skor (1-5)' },
-                        ticks: { stepSize: 1 }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    let value = context.raw;
+                                    let index = context.dataIndex;
+                                    if (context.dataset.label === 'Persepsi (Kinerja)') {
+                                        let gap = (value - harapanDosen[index]).toFixed(2);
+                                        return label + ': ' + value + ' (Gap: ' + gap + ')';
+                                    }
+                                    return label + ': ' + value;
+                                }
+                            }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5,
+                            title: { display: true, text: 'Skor (1-5)' },
+                            ticks: { stepSize: 1 }
+                        }
                     }
                 }
+            });
+
+            // ==================== CHART PENILAIAN FASILITAS ====================
+            let chartDataFasilitasFromServer = @json($chartDataFasilitas);
+            console.log('Data Fasilitas dari server:', chartDataFasilitasFromServer);
+
+            let chartDataFasilitas = chartDataFasilitasFromServer;
+            if (!chartDataFasilitas || Object.keys(chartDataFasilitas).length === 0) {
+                chartDataFasilitas = {
+                    'umum': { persepsi: 0, harapan: 0, gap: 0, label: 'Umum' },
+                    'peralatan': { persepsi: 0, harapan: 0, gap: 0, label: 'Peralatan' },
+                    'ruangan': { persepsi: 0, harapan: 0, gap: 0, label: 'Ruangan' },
+                    'akses': { persepsi: 0, harapan: 0, gap: 0, label: 'Akses' },
+                    'infrastruktur': { persepsi: 0, harapan: 0, gap: 0, label: 'Infrastruktur' }
+                };
             }
-        });
 
-        // Toggle user status
-        document.querySelectorAll('.toggle-active').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                let userId = this.dataset.id;
-                let userName = this.dataset.name;
-                let isActive = this.dataset.active === '1';
+            let kategoriFasilitas = Object.keys(chartDataFasilitas);
+            let labelsFasilitas = kategoriFasilitas.map(function (d) { return chartDataFasilitas[d].label; });
+            let persepsiFasilitas = kategoriFasilitas.map(function (d) { return chartDataFasilitas[d].persepsi; });
+            let harapanFasilitas = kategoriFasilitas.map(function (d) { return chartDataFasilitas[d].harapan; });
 
-                Swal.fire({
-                    title: 'Ubah status ' + userName + '?',
-                    text: (isActive ? 'Nonaktifkan' : 'Aktifkan') + ' user ini?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#4c1d95',
-                    confirmButtonText: 'Ya, ubah',
-                    cancelButtonText: 'Batal'
-                }).then(function (result) {
-                    if (result.isConfirmed) {
-                        axios.post('/admin/user/' + userId + '/toggle-active')
-                            .then(function (res) {
-                                if (res.data.success) {
-                                    Swal.fire('Berhasil', res.data.message, 'success').then(function () {
-                                        location.reload();
-                                    });
-                                } else {
-                                    Swal.fire('Gagal', res.data.message, 'error');
+            // Render chart fasilitas
+            let ctxFasilitas = document.getElementById('gapChartFasilitas').getContext('2d');
+            new Chart(ctxFasilitas, {
+                type: 'bar',
+                data: {
+                    labels: labelsFasilitas,
+                    datasets: [
+                        {
+                            label: 'Persepsi (Kinerja)',
+                            data: persepsiFasilitas,
+                            backgroundColor: '#28a745',
+                            borderRadius: 8,
+                            barPercentage: 0.65,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: 'Harapan',
+                            data: harapanFasilitas,
+                            backgroundColor: '#20c997',
+                            borderRadius: 8,
+                            barPercentage: 0.65,
+                            categoryPercentage: 0.8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    let value = context.raw;
+                                    let index = context.dataIndex;
+                                    if (context.dataset.label === 'Persepsi (Kinerja)') {
+                                        let gap = (value - harapanFasilitas[index]).toFixed(2);
+                                        return label + ': ' + value + ' (Gap: ' + gap + ')';
+                                    }
+                                    return label + ': ' + value;
                                 }
-                            })
-                            .catch(function () {
-                                Swal.fire('Error', 'Terjadi kesalahan', 'error');
-                            });
+                            }
+                        },
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5,
+                            title: { display: true, text: 'Skor (1-5)' },
+                            ticks: { stepSize: 1 }
+                        }
                     }
+                }
+            });
+
+            // Toggle user status
+            document.querySelectorAll('.toggle-active').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    let userId = this.dataset.id;
+                    let userName = this.dataset.name;
+                    let isActive = this.dataset.active === '1';
+
+                    Swal.fire({
+                        title: 'Ubah status ' + userName + '?',
+                        text: (isActive ? 'Nonaktifkan' : 'Aktifkan') + ' user ini?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#4c1d95',
+                        confirmButtonText: 'Ya, ubah',
+                        cancelButtonText: 'Batal'
+                    }).then(function (result) {
+                        if (result.isConfirmed) {
+                            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+                            axios.post('/admin/user/' + userId + '/toggle-active')
+                                .then(function (res) {
+                                    Swal.close();
+                                    if (res.data.success) {
+                                        Swal.fire('Berhasil', res.data.message, 'success').then(function () {
+                                            location.reload();
+                                        });
+                                    } else {
+                                        Swal.fire('Gagal', res.data.message, 'error');
+                                    }
+                                })
+                                .catch(function (err) {
+                                    Swal.close();
+                                    Swal.fire('Error', err.response?.data?.message || 'Terjadi kesalahan', 'error');
+                                });
+                        }
+                    });
                 });
             });
         });

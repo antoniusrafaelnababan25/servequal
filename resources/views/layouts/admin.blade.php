@@ -33,6 +33,7 @@
             font-family: 'Inter', sans-serif;
         }
 
+        /* Sidebar Styles */
         .sidebar-gradient {
             background: linear-gradient(135deg, #4c1d95 0%, #2e1065 100%);
         }
@@ -56,6 +57,15 @@
             border-left: 4px solid #c084fc;
         }
 
+        .hover-bg-white-10:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .hover-bg-light:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Card Styles */
         .card-hover {
             transition: all 0.3s ease;
         }
@@ -65,6 +75,7 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
         }
 
+        /* Mobile Navigation */
         .mobile-nav {
             display: none;
             position: fixed;
@@ -82,6 +93,9 @@
             text-align: center;
             color: #6c757d;
             transition: all 0.2s;
+            text-decoration: none;
+            background: transparent;
+            border: none;
         }
 
         .mobile-nav .nav-item.active {
@@ -97,6 +111,7 @@
             display: block;
         }
 
+        /* Responsive */
         @media (max-width: 992px) {
             .mobile-nav {
                 display: flex;
@@ -120,6 +135,7 @@
             }
         }
 
+        /* Pagination Styles */
         .pagination {
             justify-content: flex-end;
         }
@@ -133,6 +149,7 @@
             border-color: #4c1d95;
         }
 
+        /* Button Styles */
         .btn-purple {
             background-color: #4c1d95;
             border-color: #4c1d95;
@@ -155,14 +172,85 @@
             color: white;
         }
 
+        /* Background & Text Colors */
         .bg-purple-100 {
             background-color: #f3e8ff;
+        }
+
+        .bg-purple-50 {
+            background-color: #faf5ff;
         }
 
         .text-purple-800 {
             color: #4c1d95;
         }
 
+        .text-purple-600 {
+            color: #7c3aed;
+        }
+
+        .bg-green-100 {
+            background-color: #dcfce7;
+        }
+
+        .bg-yellow-100 {
+            background-color: #fef3c7;
+        }
+
+        .bg-red-100 {
+            background-color: #fee2e2;
+        }
+
+        .bg-purple-600 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        /* Badge Colors */
+        .bg-primary-100 {
+            background-color: #e0f2fe;
+        }
+
+        .text-primary-800 {
+            color: #075985;
+        }
+
+        .bg-success-100 {
+            background-color: #dcfce7;
+        }
+
+        .text-success-800 {
+            color: #166534;
+        }
+
+        .bg-info-100 {
+            background-color: #e0f2fe;
+        }
+
+        .text-info-800 {
+            color: #075985;
+        }
+
+        .bg-warning-100 {
+            background-color: #fef3c7;
+        }
+
+        .text-warning-800 {
+            color: #92400e;
+        }
+
+        .bg-danger-100 {
+            background-color: #fee2e2;
+        }
+
+        .text-danger-800 {
+            color: #991b1b;
+        }
+
+        /* Utility Classes */
         .rounded-4 {
             border-radius: 1rem;
         }
@@ -174,6 +262,35 @@
         .shadow-2xl {
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
+
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        /* Alert Styles */
+        .alert {
+            border: none;
+        }
+
+        /* Form Styles */
+        .form-check-input:checked {
+            background-color: #4c1d95;
+            border-color: #4c1d95;
+        }
+
+        /* Dropdown Styles */
+        .dropdown-item:active {
+            background-color: #4c1d95;
+        }
+
+        /* Table Styles */
+        .table > :not(caption) > * > * {
+            padding: 1rem 0.75rem;
+        }
     </style>
 </head>
 
@@ -183,68 +300,81 @@
     <aside
         class="sidebar-gradient text-white shadow-2xl overflow-y-auto sidebar-scroll transition-all duration-300 fixed h-full z-50"
         id="sidebar" style="width: 280px;">
-        <div class="p-5 border-b border-white/10">
+        <div class="p-4 border-bottom border-white border-opacity-10">
             <div class="d-flex align-items-center gap-3">
                 <img src="https://polmed.ac.id/wp-content/uploads/2014/04/logo-polmed-png.png" alt="POLMED Logo"
                     style="height: 40px; width: auto;">
                 <div>
                     <h1 class="fs-4 fw-bold mb-0">SERVQUAL</h1>
-                    <p class="text-purple-300 small mb-0">Admin Panel</p>
+                    <p class="text-white text-opacity-50 small mb-0">Admin Panel</p>
                 </div>
             </div>
         </div>
 
-        <nav class="mt-4 px-3">
+        <nav class="mt-3 px-3 pb-5">
             <a href="{{ route('admin.dashboard') }}"
-                class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all {{ request()->routeIs('admin.dashboard') ? 'nav-active bg-white/10' : 'hover-bg-white/5' }}"
+                class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mb-1 {{ request()->routeIs('admin.dashboard') ? 'nav-active' : 'hover-bg-white-10' }}"
                 style="text-decoration: none; color: inherit;">
-                <i
-                    class="bi bi-speedometer2 fs-5 {{ request()->routeIs('admin.dashboard') ? 'text-purple-300' : 'text-gray-400' }}"></i>
+                <i class="bi bi-speedometer2 fs-5"></i>
                 <span class="small fw-medium">Dashboard</span>
             </a>
             <a href="{{ route('admin.dosen.index') }}"
-                class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mt-1 {{ request()->routeIs('admin.dosen.*') ? 'nav-active bg-white/10' : 'hover-bg-white/5' }}"
+                class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mb-1 {{ request()->routeIs('admin.dosen.*') ? 'nav-active' : 'hover-bg-white-10' }}"
                 style="text-decoration: none; color: inherit;">
-                <i
-                    class="bi bi-person-badge fs-5 {{ request()->routeIs('admin.dosen.*') ? 'text-purple-300' : 'text-gray-400' }}"></i>
+                <i class="bi bi-person-badge fs-5"></i>
                 <span class="small fw-medium">Dosen</span>
             </a>
             <a href="{{ route('admin.mahasiswa.index') }}"
-                class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mt-1 {{ request()->routeIs('admin.mahasiswa.*') ? 'nav-active bg-white/10' : 'hover-bg-white/5' }}"
+                class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mb-1 {{ request()->routeIs('admin.mahasiswa.*') ? 'nav-active' : 'hover-bg-white-10' }}"
                 style="text-decoration: none; color: inherit;">
-                <i
-                    class="bi bi-people fs-5 {{ request()->routeIs('admin.mahasiswa.*') ? 'text-purple-300' : 'text-gray-400' }}"></i>
+                <i class="bi bi-people fs-5"></i>
                 <span class="small fw-medium">Mahasiswa</span>
             </a>
             <a href="{{ route('admin.pertanyaan.index') }}"
-                class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mt-1 {{ request()->routeIs('admin.pertanyaan.*') ? 'nav-active bg-white/10' : 'hover-bg-white/5' }}"
+                class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mb-1 {{ request()->routeIs('admin.pertanyaan.*') ? 'nav-active' : 'hover-bg-white-10' }}"
                 style="text-decoration: none; color: inherit;">
-                <i
-                    class="bi bi-question-circle fs-5 {{ request()->routeIs('admin.pertanyaan.*') ? 'text-purple-300' : 'text-gray-400' }}"></i>
+                <i class="bi bi-question-circle fs-5"></i>
                 <span class="small fw-medium">Pertanyaan</span>
             </a>
             <a href="{{ route('admin.kuesioner.index') }}"
-                class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mt-1 {{ request()->routeIs('admin.kuesioner.*') ? 'nav-active bg-white/10' : 'hover-bg-white/5' }}"
+                class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mb-1 {{ request()->routeIs('admin.kuesioner.*') ? 'nav-active' : 'hover-bg-white-10' }}"
                 style="text-decoration: none; color: inherit;">
-                <i
-                    class="bi bi-file-text fs-5 {{ request()->routeIs('admin.kuesioner.*') ? 'text-purple-300' : 'text-gray-400' }}"></i>
+                <i class="bi bi-file-text fs-5"></i>
                 <span class="small fw-medium">Kuesioner</span>
             </a>
-            <a href="{{ route('admin.laporan.index') }}"
-                class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mt-1 {{ request()->routeIs('admin.laporan.*') ? 'nav-active bg-white/10' : 'hover-bg-white/5' }}"
-                style="text-decoration: none; color: inherit;">
-                <i
-                    class="bi bi-bar-chart fs-5 {{ request()->routeIs('admin.laporan.*') ? 'text-purple-300' : 'text-gray-400' }}"></i>
-                <span class="small fw-medium">Laporan</span>
-            </a>
+            
+            <!-- Menu Laporan dengan Dropdown -->
+            <div class="mt-2">
+                <div class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mb-1 cursor-pointer"
+                    onclick="toggleLaporanMenu()" style="color: inherit;">
+                    <i class="bi bi-bar-chart fs-5"></i>
+                    <span class="small fw-medium flex-grow-1">Laporan</span>
+                    <i class="bi bi-chevron-down fs-6" id="laporanChevron"></i>
+                </div>
+                <div id="laporanSubmenu" class="ps-4" style="display: none;">
+                    <a href="{{ route('admin.laporan.index') }}"
+                        class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mb-1 {{ request()->routeIs('admin.laporan.*') && !request()->routeIs('admin.laporan.fasilitas.*') ? 'nav-active' : 'hover-bg-white-10' }}"
+                        style="text-decoration: none; color: inherit;">
+                        <i class="bi bi-person-badge fs-6"></i>
+                        <span class="small fw-medium">Penilaian Dosen</span>
+                    </a>
+                    <a href="{{ route('admin.laporan.fasilitas.index') }}"
+                        class="d-flex align-items-center gap-3 px-3 py-2 rounded-3 transition-all mb-1 {{ request()->routeIs('admin.laporan.fasilitas.*') ? 'nav-active' : 'hover-bg-white-10' }}"
+                        style="text-decoration: none; color: inherit;">
+                        <i class="bi bi-building fs-6"></i>
+                        <span class="small fw-medium">Penilaian Fasilitas</span>
+                    </a>
+                </div>
+            </div>
         </nav>
 
-        <div class="position-absolute bottom-0 w-100 p-3 border-top border-white/10" style="width: 280px;">
+        <div class="position-absolute bottom-0 w-100 p-3 border-top border-white border-opacity-10"
+            style="width: 280px;">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
-                    class="d-flex align-items-center gap-3 w-100 px-3 py-2 rounded-3 text-gray-300 bg-transparent border-0 transition-all hover-bg-white/10">
-                    <i class="bi bi-box-arrow-right fs-5 text-gray-400"></i>
+                    class="d-flex align-items-center gap-3 w-100 px-3 py-2 rounded-3 text-white text-opacity-75 bg-transparent border-0 transition-all hover-bg-white-10">
+                    <i class="bi bi-box-arrow-right fs-5"></i>
                     <span class="small fw-medium">Logout</span>
                 </button>
             </form>
@@ -252,23 +382,25 @@
     </aside>
 
     <!-- MAIN CONTENT -->
-    <main class="lg:ml-[280px] min-vh-100 main-content">
+    <main class="main-content" style="margin-left: 280px;">
         <!-- TOP NAVBAR -->
         <div class="bg-white shadow-sm sticky-top z-10">
             <div class="d-flex justify-content-between align-items-center px-4 py-2">
                 <div class="d-flex align-items-center gap-3">
-                    <button id="sidebarToggle" class="btn btn-link text-gray-600 d-lg-none p-0 border-0">
+                    <button id="sidebarToggle" class="btn btn-link text-secondary d-lg-none p-0 border-0">
                         <i class="bi bi-list fs-3"></i>
                     </button>
-                    <h2 class="fs-5 fw-semibold text-gray-800 mb-0 d-none d-md-block">@yield('page_title', 'Dashboard')
-                    </h2>
+                    <h2 class="fs-5 fw-semibold text-dark mb-0 d-none d-md-block">@yield('page_title', 'Dashboard')</h2>
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <!-- Notifikasi -->
                     <div class="position-relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="btn btn-link text-gray-500 p-1 border-0 position-relative">
+                        <button @click="open = !open"
+                            class="btn btn-link text-secondary p-1 border-0 position-relative">
                             <i class="bi bi-bell fs-5"></i>
-                            @php $unreadCount = isset($unreadCount) ? $unreadCount : 0; @endphp
+                            @php 
+                                $unreadCount = isset($unreadCount) ? $unreadCount : 0; 
+                            @endphp
                             @if($unreadCount > 0)
                                 <span
                                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
@@ -277,7 +409,7 @@
                         </button>
                         <div x-show="open" @click.away="open = false"
                             class="position-absolute end-0 mt-2 bg-white rounded-3 shadow-lg border"
-                            style="width: 300px; display: none; z-index: 1050;">
+                            style="width: 320px; display: none; z-index: 1050;">
                             <div class="py-2">
                                 <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
                                     <span class="fw-semibold">Notifikasi</span>
@@ -286,18 +418,17 @@
                                             class="btn btn-link btn-sm text-purple-600 p-0">Tandai semua dibaca</button>
                                     @endif
                                 </div>
-                                @forelse(($notifikasi ?? []) as $notif)
-                                    <div class="px-3 py-2 border-bottom notif-item cursor-pointer"
-                                        data-id="{{ $notif->id }}">
-                                        <p class="small text-gray-800 mb-0">{{ $notif->message }}</p>
-                                        <p class="small text-gray-400 mt-1 mb-0">{{ $notif->created_at->diffForHumans() }}
-                                        </p>
-                                    </div>
-                                @empty
-                                    <div class="px-3 py-4 text-center text-gray-400 small">Tidak ada notifikasi</div>
-                                @endforelse
-                                <div class="text-center py-2">
-                                    <a href="#" class="small text-purple-600 text-decoration-none">Lihat semua</a>
+                                <div style="max-height: 400px; overflow-y: auto;">
+                                    @forelse(($notifikasi ?? []) as $notif)
+                                        <div class="px-3 py-2 border-bottom notif-item cursor-pointer hover-bg-light"
+                                            data-id="{{ $notif->id }}">
+                                            <p class="small text-dark mb-0">{{ $notif->message }}</p>
+                                            <p class="small text-muted mt-1 mb-0">{{ $notif->created_at->diffForHumans() }}
+                                            </p>
+                                        </div>
+                                    @empty
+                                        <div class="px-3 py-4 text-center text-muted small">Tidak ada notifikasi</div>
+                                    @endforelse
                                 </div>
                             </div>
                         </div>
@@ -307,17 +438,17 @@
                     <div class="position-relative" x-data="{ open: false }">
                         <button @click="open = !open" class="btn btn-link p-0 border-0 d-flex align-items-center gap-2">
                             <div class="bg-purple-100 rounded-circle d-flex align-items-center justify-content-center"
-                                style="width: 32px; height: 32px;">
-                                <span class="text-purple-700 fw-semibold">{{ substr(Auth::user()->name, 0, 1) }}</span>
+                                style="width: 36px; height: 36px;">
+                                <span class="text-purple-800 fw-semibold">{{ substr(Auth::user()->name, 0, 1) }}</span>
                             </div>
-                            <span
-                                class="small fw-medium text-gray-700 d-none d-md-block">{{ Auth::user()->name }}</span>
-                            <i class="bi bi-chevron-down text-gray-500 d-none d-md-block"></i>
+                            <span class="small fw-medium text-dark d-none d-md-block">{{ Auth::user()->name }}</span>
+                            <i class="bi bi-chevron-down text-secondary d-none d-md-block"></i>
                         </button>
                         <div x-show="open" @click.away="open = false"
                             class="position-absolute end-0 mt-2 bg-white rounded-3 shadow-lg border"
-                            style="width: 180px; display: none; z-index: 1050;">
+                            style="width: 200px; display: none; z-index: 1050;">
                             <a href="{{ route('profile.edit') }}" class="dropdown-item px-3 py-2 small">Profile</a>
+                            <div class="dropdown-divider"></div>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="dropdown-item px-3 py-2 small text-danger">Logout</button>
@@ -351,24 +482,29 @@
     <div class="mobile-nav d-lg-none">
         <a href="{{ route('admin.dashboard') }}"
             class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-            <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
         </a>
         <a href="{{ route('admin.dosen.index') }}"
             class="nav-item {{ request()->routeIs('admin.dosen.*') ? 'active' : '' }}">
-            <i class="bi bi-person-badge"></i><span>Dosen</span>
+            <i class="bi bi-person-badge"></i>
+            <span>Dosen</span>
         </a>
         <a href="{{ route('admin.mahasiswa.index') }}"
             class="nav-item {{ request()->routeIs('admin.mahasiswa.*') ? 'active' : '' }}">
-            <i class="bi bi-people"></i><span>Mahasiswa</span>
+            <i class="bi bi-people"></i>
+            <span>Mahasiswa</span>
         </a>
         <a href="{{ route('admin.pertanyaan.index') }}"
             class="nav-item {{ request()->routeIs('admin.pertanyaan.*') ? 'active' : '' }}">
-            <i class="bi bi-question-circle"></i><span>Pertanyaan</span>
+            <i class="bi bi-question-circle"></i>
+            <span>Pertanyaan</span>
         </a>
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" class="m-0">
             @csrf
-            <button type="submit" class="nav-item border-0 bg-transparent text-red-500">
-                <i class="bi bi-box-arrow-right"></i><span>Logout</span>
+            <button type="submit" class="nav-item border-0 bg-transparent">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
             </button>
         </form>
     </div>
@@ -376,37 +512,88 @@
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        (function () {
+        // Axios CSRF Token
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // Sidebar Toggle
+        (function() {
             const sidebar = document.getElementById('sidebar');
             const toggleBtn = document.getElementById('sidebarToggle');
+
             if (toggleBtn) {
-                toggleBtn.addEventListener('click', function (e) {
+                toggleBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     sidebar.classList.toggle('show');
                 });
             }
-            document.addEventListener('click', function (event) {
-                if (sidebar && sidebar.classList.contains('show') && !sidebar.contains(event.target) && event.target !== toggleBtn && !toggleBtn?.contains(event.target)) {
+
+            document.addEventListener('click', function(event) {
+                if (sidebar && sidebar.classList.contains('show') &&
+                    !sidebar.contains(event.target) &&
+                    event.target !== toggleBtn &&
+                    !toggleBtn?.contains(event.target)) {
                     sidebar.classList.remove('show');
                 }
             });
-
-            document.querySelectorAll('.notif-item').forEach(el => {
-                el.addEventListener('click', function () {
-                    let id = this.dataset.id;
-                    if (!id) return;
-                    axios.post('/admin/notifikasi/' + id + '/read')
-                        .then(() => location.reload())
-                        .catch(err => console.error(err));
-                });
-            });
         })();
+
+        // Laporan Menu Toggle
+        function toggleLaporanMenu() {
+            const submenu = document.getElementById('laporanSubmenu');
+            const chevron = document.getElementById('laporanChevron');
+            
+            if (submenu.style.display === 'none' || submenu.style.display === '') {
+                submenu.style.display = 'block';
+                if (chevron) chevron.classList.replace('bi-chevron-down', 'bi-chevron-up');
+            } else {
+                submenu.style.display = 'none';
+                if (chevron) chevron.classList.replace('bi-chevron-up', 'bi-chevron-down');
+            }
+        }
+
+        // Cek apakah ada route laporan yang aktif, jika ya buka submenu
+        if (window.location.href.includes('/admin/laporan')) {
+            const submenu = document.getElementById('laporanSubmenu');
+            const chevron = document.getElementById('laporanChevron');
+            if (submenu) submenu.style.display = 'block';
+            if (chevron) chevron.classList.replace('bi-chevron-down', 'bi-chevron-up');
+        }
+
+        // Notifikasi
+        document.querySelectorAll('.notif-item').forEach(el => {
+            el.addEventListener('click', function() {
+                let id = this.dataset.id;
+                if (!id) return;
+                axios.post('/admin/notifikasi/' + id + '/read')
+                    .then(() => location.reload())
+                    .catch(err => console.error(err));
+            });
+        });
 
         function markAllNotificationsRead() {
             axios.post('{{ route("admin.notifikasi.read-all") }}')
                 .then(() => location.reload())
                 .catch(err => console.error(err));
         }
+
+        // Hover class
+        document.querySelectorAll('.hover-bg-white-10').forEach(el => {
+            el.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            });
+            el.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '';
+            });
+        });
+
+        document.querySelectorAll('.hover-bg-light').forEach(el => {
+            el.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f8f9fa';
+            });
+            el.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '';
+            });
+        });
     </script>
     @stack('scripts')
 </body>

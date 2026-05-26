@@ -36,11 +36,6 @@ class UserController extends Controller
         }
 
         $users = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
-
-        if ($request->ajax()) {
-            return response()->json($users);
-        }
-
         $jurusans = Jurusan::orderBy('nama_jurusan')->get();
         $prodis = Prodi::with('jurusan')->orderBy('nama_prodi')->get();
 
@@ -93,7 +88,10 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            if ($request->ajax()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         $userData = [
@@ -125,7 +123,10 @@ class UserController extends Controller
 
         $user = User::create($userData);
 
-        return response()->json(['success' => true, 'message' => 'User berhasil ditambahkan', 'user' => $user]);
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'User berhasil ditambahkan', 'user' => $user]);
+        }
+        return redirect()->route('super.users.index')->with('success', 'User berhasil ditambahkan');
     }
 
     /**
@@ -134,11 +135,6 @@ class UserController extends Controller
     public function show(User $user)
     {
         $user->load('prodi.jurusan');
-
-        if (request()->ajax()) {
-            return response()->json(['success' => true, 'user' => $user]);
-        }
-
         return view('superadmin.users.show', compact('user'));
     }
 
@@ -148,14 +144,8 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $jurusans = Jurusan::orderBy('nama_jurusan')->get();
-
-        // Load prodi yang sudah dipilih user
-        $selectedProdi = null;
-        if ($user->prodi_id) {
-            $selectedProdi = Prodi::with('jurusan')->find($user->prodi_id);
-        }
-
         $prodis = Prodi::with('jurusan')->orderBy('nama_prodi')->get();
+        $selectedProdi = $user->prodi_id ? Prodi::with('jurusan')->find($user->prodi_id) : null;
 
         return view('superadmin.users.edit', compact('user', 'jurusans', 'prodis', 'selectedProdi'));
     }
@@ -195,7 +185,10 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            if ($request->ajax()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         $userData = [
@@ -212,7 +205,6 @@ class UserController extends Controller
             if ($request->filled('password')) {
                 $userData['password'] = Hash::make($request->password);
             }
-            // Reset field dosen/mahasiswa
             $userData['nidn'] = null;
             $userData['nim'] = null;
             $userData['kelas'] = null;
@@ -226,7 +218,6 @@ class UserController extends Controller
             }
             $userData['jurusan'] = $request->jurusan;
             $userData['prodi_id'] = $request->prodi_id;
-            // Reset field mahasiswa
             $userData['nim'] = null;
             $userData['kelas'] = null;
         } elseif ($request->role === 'mahasiswa') {
@@ -238,13 +229,15 @@ class UserController extends Controller
             }
             $userData['jurusan'] = $request->jurusan;
             $userData['prodi_id'] = $request->prodi_id;
-            // Reset field dosen
             $userData['nidn'] = null;
         }
 
         $user->update($userData);
 
-        return response()->json(['success' => true, 'message' => 'User berhasil diperbarui']);
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'User berhasil diperbarui']);
+        }
+        return redirect()->route('super.users.index')->with('success', 'User berhasil diperbarui');
     }
 
     /**
@@ -271,7 +264,6 @@ class UserController extends Controller
      */
     public function toggleActive(User $user)
     {
-        // Cek jika user super_admin dan sedang mencoba menonaktifkan diri sendiri
         if ($user->role === 'super_admin' && $user->id === auth()->id()) {
             return response()->json([
                 'success' => false,

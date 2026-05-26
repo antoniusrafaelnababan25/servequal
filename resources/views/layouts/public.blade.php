@@ -195,7 +195,7 @@
         <div class="text-center mb-4 animate-fade-in-up">
             <img src="https://polmed.ac.id/wp-content/uploads/2014/04/logo-polmed-png.png" alt="POLMED"
                 class="logo mb-3">
-            <h1 class="text-white fw-bold">Sistem Monitoring SERVQUAL</h1>
+            <h1 class="text-white fw-bold">Sistem Monitoring</h1>
             <p class="text-white opacity-75">Evaluasi Layanan Akademik Politeknik Negeri Medan</p>
         </div>
 

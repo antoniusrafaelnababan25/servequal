@@ -44,6 +44,15 @@ class DashboardController extends Controller
             'inactive' => User::where('is_active', false)->count(),
         ];
 
+        // ==================== STATISTIK MASTER DATA ====================
+        $masterStats = [
+            'jurusan' => Jurusan::count(),
+            'prodi' => Prodi::count(),
+            'periode' => KuesionerPeriode::count(),
+            'pertanyaan' => Pertanyaan::count(),
+            'pertanyaan_aktif' => Pertanyaan::where('is_active', true)->count(),
+        ];
+
         // ==================== STATISTIK PENILAIAN ====================
         $penilaianQuery = PenilaianDosen::query();
         $fasilitasQuery = PenilaianFasilitas::query();
@@ -58,28 +67,42 @@ class DashboardController extends Controller
         $avgKepuasanDosen = round($penilaianQuery->avg('rata_rata') ?? 0, 2);
         $avgKepuasanFasilitas = round($fasilitasQuery->avg('rata_rata') ?? 0, 2);
 
-        // ==================== PARTISIPASI MAHASISWA ====================
+        // ==================== PARTISIPASI ====================
         $totalMahasiswa = User::where('role', 'mahasiswa')->count();
         $mahasiswaSudahMenilai = PenilaianDosen::when($periodeTerpilih, function ($q) use ($periodeTerpilih) {
             return $q->where('periode_id', $periodeTerpilih->id);
         })->distinct('mahasiswa_id')->count('mahasiswa_id');
 
+        $totalDosen = User::where('role', 'dosen')->count();
+        $dosenSudahMenilaiFasilitas = PenilaianFasilitas::when($periodeTerpilih, function ($q) use ($periodeTerpilih) {
+            return $q->where('periode_id', $periodeTerpilih->id);
+        })->distinct('mahasiswa_id')->count('mahasiswa_id');
+
         $partisipasi = [
-            'sudah_menilai' => $mahasiswaSudahMenilai,
-            'belum_menilai' => $totalMahasiswa - $mahasiswaSudahMenilai,
-            'persentase' => $totalMahasiswa > 0 ? round(($mahasiswaSudahMenilai / $totalMahasiswa) * 100, 1) : 0,
+            'mahasiswa' => [
+                'sudah' => $mahasiswaSudahMenilai,
+                'belum' => $totalMahasiswa - $mahasiswaSudahMenilai,
+                'persentase' => $totalMahasiswa > 0 ? round(($mahasiswaSudahMenilai / $totalMahasiswa) * 100, 1) : 0,
+            ],
+            'dosen' => [
+                'sudah' => $dosenSudahMenilaiFasilitas,
+                'belum' => $totalDosen - $dosenSudahMenilaiFasilitas,
+                'persentase' => $totalDosen > 0 ? round(($dosenSudahMenilaiFasilitas / $totalDosen) * 100, 1) : 0,
+            ],
         ];
 
         // ==================== DATA CHART ====================
-        // Chart data berdasarkan periode (pastikan selalu ada data)
         $chartData = $this->getChartData($periodeTerpilih ? $periodeTerpilih->id : null);
         $trendData = $this->getTrendData();
+        $kategoriChartData = $this->getKategoriChartData($periodeTerpilih ? $periodeTerpilih->id : null);
 
         // ==================== NOTIFIKASI ====================
         $notifikasi = Notifikasi::where(function ($q) {
             $q->where('target_role', 'super_admin')->orWhere('target_role', 'all');
-        })->orderBy('created_at', 'desc')->get();
-        $unreadCount = $notifikasi->where('is_read', false)->count();
+        })->orderBy('created_at', 'desc')->limit(10)->get();
+        $unreadCount = Notifikasi::where(function ($q) {
+            $q->where('target_role', 'super_admin')->orWhere('target_role', 'all');
+        })->where('is_read', false)->count();
 
         // ==================== DATA UNTUK FILTER ====================
         $jurusanList = Jurusan::orderBy('nama_jurusan')->get();
@@ -87,22 +110,33 @@ class DashboardController extends Controller
         $jenjangList = ['sarjana' => 'Sarjana', 'pascasarjana' => 'Pascasarjana', 'internasional' => 'Internasional'];
 
         // ==================== AKTIVITAS TERBARU ====================
-        $aktivitasTerbaru = $this->getAktivitasTerbaru($periodeTerpilih?->id);
+        $aktivitasTerbaru = PenilaianDosen::with(['dosen', 'mahasiswa', 'periode'])
+            ->when($periodeTerpilih, function ($q) use ($periodeTerpilih) {
+                return $q->where('periode_id', $periodeTerpilih->id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
 
         // ==================== RATING DISTRIBUTION ====================
-        $ratingDistribution = $this->getRatingDistribution($periodeTerpilih?->id);
+        $ratingDistribution = $this->getRatingDistribution($periodeTerpilih ? $periodeTerpilih->id : null);
+
+        // ==================== PENILAIAN PER HARI (30 Hari Terakhir) ====================
+        $penilaianPerHari = $this->getPenilaianPerHari($periodeTerpilih ? $periodeTerpilih->id : null);
 
         // User dengan filter (semua role)
         $users = $this->getFilteredUsers($request);
 
         return view('superadmin.dashboard', compact(
             'userStats',
+            'masterStats',
             'totalPenilaianDosen',
             'totalPenilaianFasilitas',
             'avgKepuasanDosen',
             'avgKepuasanFasilitas',
             'chartData',
             'trendData',
+            'kategoriChartData',
             'notifikasi',
             'unreadCount',
             'jurusanList',
@@ -113,6 +147,7 @@ class DashboardController extends Controller
             'partisipasi',
             'aktivitasTerbaru',
             'ratingDistribution',
+            'penilaianPerHari',
             'users'
         ));
     }
@@ -128,11 +163,9 @@ class DashboardController extends Controller
 
     /**
      * Hitung rata-rata persepsi dan harapan untuk setiap dimensi SERVQUAL
-     * Pastikan selalu mengembalikan data, tidak pernah null atau kosong
      */
     private function getChartData($periodeId = null)
     {
-        // Data dummy default (akan digunakan jika tidak ada data penilaian)
         $defaultData = [
             'Tangible' => ['persepsi' => 0, 'harapan' => 0, 'gap' => 0],
             'Reliability' => ['persepsi' => 0, 'harapan' => 0, 'gap' => 0],
@@ -143,28 +176,23 @@ class DashboardController extends Controller
 
         $dimensi = ['Tangible', 'Reliability', 'Responsiveness', 'Assurance', 'Empathy'];
 
-        // Ambil semua penilaian sesuai periode
-        $query = PenilaianDosen::with(['dosen']);
+        $query = PenilaianDosen::query();
         if ($periodeId) {
             $query->where('periode_id', $periodeId);
         }
 
         $penilaianList = $query->get();
 
-        // Jika tidak ada data, return default (semua 0)
         if ($penilaianList->isEmpty()) {
             return $defaultData;
         }
 
-        // Inisialisasi akumulator
         $totalPersepsi = array_fill_keys($dimensi, 0);
         $totalHarapan = array_fill_keys($dimensi, 0);
         $count = array_fill_keys($dimensi, 0);
 
         foreach ($penilaianList as $penilaian) {
             $nilai = $penilaian->nilai;
-
-            // Decode jika string JSON
             if (is_string($nilai)) {
                 $nilai = json_decode($nilai, true);
             }
@@ -174,33 +202,19 @@ class DashboardController extends Controller
             }
 
             foreach ($nilai as $item) {
-                // Cari dimensi dari id_pertanyaan
-                $idPertanyaan = null;
-                if (is_array($item)) {
-                    $idPertanyaan = $item['id_pertanyaan'] ?? null;
-                } elseif (is_object($item)) {
-                    $idPertanyaan = $item->id_pertanyaan ?? null;
-                }
-
-                if ($idPertanyaan) {
-                    $pertanyaan = Pertanyaan::find($idPertanyaan);
+                if (is_array($item) && isset($item['id_pertanyaan'])) {
+                    $pertanyaan = Pertanyaan::find($item['id_pertanyaan']);
                     $dimensiItem = $pertanyaan ? $pertanyaan->dimensi : null;
 
                     if ($dimensiItem && in_array($dimensiItem, $dimensi)) {
-                        if (is_array($item)) {
-                            $totalPersepsi[$dimensiItem] += (int) ($item['persepsi'] ?? 0);
-                            $totalHarapan[$dimensiItem] += (int) ($item['harapan'] ?? 0);
-                        } else {
-                            $totalPersepsi[$dimensiItem] += (int) ($item->persepsi ?? 0);
-                            $totalHarapan[$dimensiItem] += (int) ($item->harapan ?? 0);
-                        }
+                        $totalPersepsi[$dimensiItem] += (int) ($item['persepsi'] ?? 0);
+                        $totalHarapan[$dimensiItem] += (int) ($item['harapan'] ?? 0);
                         $count[$dimensiItem]++;
                     }
                 }
             }
         }
 
-        // Hitung rata-rata
         $result = [];
         foreach ($dimensi as $dim) {
             $avgPersepsi = $count[$dim] > 0 ? round($totalPersepsi[$dim] / $count[$dim], 2) : 0;
@@ -216,36 +230,85 @@ class DashboardController extends Controller
     }
 
     /**
+     * Chart data untuk penilaian fasilitas per kategori
+     */
+    private function getKategoriChartData($periodeId = null)
+    {
+        $kategori = ['umum', 'peralatan', 'ruangan', 'akses', 'infrastruktur'];
+        $kategoriLabel = [
+            'umum' => 'Umum',
+            'peralatan' => 'Peralatan',
+            'ruangan' => 'Ruangan',
+            'akses' => 'Akses',
+            'infrastruktur' => 'Infrastruktur'
+        ];
+
+        $defaultData = [];
+        foreach ($kategori as $kat) {
+            $defaultData[$kat] = ['persepsi' => 0, 'harapan' => 0, 'gap' => 0, 'label' => $kategoriLabel[$kat]];
+        }
+
+        $query = PenilaianFasilitas::query();
+        if ($periodeId) {
+            $query->where('periode_id', $periodeId);
+        }
+
+        $penilaianList = $query->get();
+
+        if ($penilaianList->isEmpty()) {
+            return $defaultData;
+        }
+
+        $totalPersepsi = array_fill_keys($kategori, 0);
+        $totalHarapan = array_fill_keys($kategori, 0);
+        $count = array_fill_keys($kategori, 0);
+
+        foreach ($penilaianList as $penilaian) {
+            $nilai = $penilaian->nilai;
+            if (is_string($nilai)) {
+                $nilai = json_decode($nilai, true);
+            }
+            if (is_array($nilai)) {
+                foreach ($nilai as $item) {
+                    if (isset($item['id_pertanyaan'])) {
+                        $pertanyaan = Pertanyaan::find($item['id_pertanyaan']);
+                        $kategoriItem = $pertanyaan ? $pertanyaan->kategori_fasilitas : null;
+                        if ($kategoriItem && in_array($kategoriItem, $kategori)) {
+                            $totalPersepsi[$kategoriItem] += $item['persepsi'] ?? 0;
+                            $totalHarapan[$kategoriItem] += $item['harapan'] ?? 0;
+                            $count[$kategoriItem]++;
+                        }
+                    }
+                }
+            }
+        }
+
+        $result = [];
+        foreach ($kategori as $kat) {
+            $avgPersepsi = $count[$kat] > 0 ? round($totalPersepsi[$kat] / $count[$kat], 2) : 0;
+            $avgHarapan = $count[$kat] > 0 ? round($totalHarapan[$kat] / $count[$kat], 2) : 0;
+            $result[$kat] = [
+                'persepsi' => $avgPersepsi,
+                'harapan' => $avgHarapan,
+                'gap' => round($avgPersepsi - $avgHarapan, 2),
+                'label' => $kategoriLabel[$kat]
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
      * Data tren SERVQUAL antar periode
      */
     private function getTrendData()
     {
         $periodeList = KuesionerPeriode::orderBy('tanggal_mulai', 'asc')->get();
-
         $trend = [];
+
         foreach ($periodeList as $periode) {
             $penilaianList = PenilaianDosen::where('periode_id', $periode->id)->get();
             $rataKepuasan = $penilaianList->avg('rata_rata') ?? 0;
-            $totalPenilaian = $penilaianList->count();
-
-            // Hitung rata-rata gap
-            $totalGap = 0;
-            $gapCount = 0;
-            foreach ($penilaianList as $penilaian) {
-                $nilai = $penilaian->nilai;
-                if (is_string($nilai)) {
-                    $nilai = json_decode($nilai, true);
-                }
-                if (is_array($nilai)) {
-                    foreach ($nilai as $item) {
-                        if (is_array($item) && isset($item['persepsi']) && isset($item['harapan'])) {
-                            $gap = ($item['persepsi'] ?? 0) - ($item['harapan'] ?? 0);
-                            $totalGap += $gap;
-                            $gapCount++;
-                        }
-                    }
-                }
-            }
 
             $trend[] = [
                 'periode' => [
@@ -255,27 +318,11 @@ class DashboardController extends Controller
                     'tanggal_selesai' => $periode->tanggal_selesai,
                 ],
                 'rata_kepuasan' => round($rataKepuasan, 2),
-                'total_penilaian' => $totalPenilaian,
-                'rata_gap' => $gapCount > 0 ? round($totalGap / $gapCount, 2) : 0,
+                'total_penilaian' => $penilaianList->count(),
             ];
         }
 
         return $trend;
-    }
-
-    /**
-     * Aktivitas terbaru (penilaian terbaru)
-     */
-    private function getAktivitasTerbaru($periodeId = null)
-    {
-        $query = PenilaianDosen::with(['dosen', 'mahasiswa', 'periode'])
-            ->orderBy('created_at', 'desc');
-
-        if ($periodeId) {
-            $query->where('periode_id', $periodeId);
-        }
-
-        return $query->limit(10)->get();
     }
 
     /**
@@ -299,6 +346,35 @@ class DashboardController extends Controller
         }
 
         return $ratings;
+    }
+
+    /**
+     * Penilaian per hari (30 hari terakhir)
+     */
+    private function getPenilaianPerHari($periodeId = null)
+    {
+        $query = PenilaianDosen::query();
+        if ($periodeId) {
+            $query->where('periode_id', $periodeId);
+        }
+
+        $data = $query->select(DB::raw('DATE(created_at) as tanggal'), DB::raw('COUNT(*) as total'))
+            ->where('created_at', '>=', now()->subDays(30))
+            ->groupBy('tanggal')
+            ->orderBy('tanggal', 'asc')
+            ->get();
+
+        $result = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $tanggal = now()->subDays($i)->format('Y-m-d');
+            $result[$tanggal] = 0;
+        }
+
+        foreach ($data as $item) {
+            $result[$item->tanggal] = $item->total;
+        }
+
+        return $result;
     }
 
     /**
@@ -335,7 +411,7 @@ class DashboardController extends Controller
             });
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+        return $query->orderBy('created_at', 'desc')->paginate(10);
     }
 
     /**
@@ -351,25 +427,36 @@ class DashboardController extends Controller
      */
     public function toggleActive(User $user)
     {
-        $user->is_active = !$user->is_active;
-        $user->save();
+        try {
+            $user->is_active = !$user->is_active;
+            $user->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => "Status user {$user->name} berhasil diubah",
-            'is_active' => $user->is_active
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => "Status user {$user->name} berhasil diubah",
+                'is_active' => $user->is_active
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengubah status user'
+            ], 500);
+        }
     }
 
     /**
      * Notifikasi: Mark as read
      */
-    public function markNotificationRead(int $id)
+    public function markNotificationRead($id)
     {
-        $notif = Notifikasi::findOrFail($id);
-        $notif->is_read = true;
-        $notif->save();
-        return response()->json(['success' => true]);
+        try {
+            $notif = Notifikasi::findOrFail($id);
+            $notif->is_read = true;
+            $notif->save();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false], 500);
+        }
     }
 
     /**
@@ -377,17 +464,24 @@ class DashboardController extends Controller
      */
     public function markAllNotificationsRead()
     {
-        Notifikasi::where('target_role', 'super_admin')->orWhere('target_role', 'all')->update(['is_read' => true]);
-        return response()->json(['success' => true]);
+        try {
+            Notifikasi::where('target_role', 'super_admin')->orWhere('target_role', 'all')->update(['is_read' => true]);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false], 500);
+        }
     }
 
     /**
      * Notifikasi: Delete notification
      */
-    public function deleteNotification(int $id)
+    public function deleteNotification($id)
     {
-        $notif = Notifikasi::findOrFail($id);
-        $notif->delete();
-        return response()->json(['success' => true]);
+        try {
+            Notifikasi::findOrFail($id)->delete();
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false], 500);
+        }
     }
 }
