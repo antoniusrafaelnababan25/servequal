@@ -1,58 +1,184 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
+  
+# 📊 SERVQUAL MONITORING SYSTEM
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[![Laravel](https://img.shields.io/badge/Laravel-10.x-red.svg?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.1+-blue.svg?style=for-the-badge&logo=php)](https://php.net)
+[![MySQL](https://img.shields.io/badge/MySQL-5.7+-orange.svg?style=for-the-badge&logo=mysql)](https://mysql.com)
+[![Status](https://img.shields.io/badge/Status-Production-green.svg?style=for-the-badge)](https://github.com/antoniusrafaelnababan25/servequal)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-## About Laravel
+**Aplikasi Monitoring Kualitas Layanan dengan Metode SERVQUAL**  
+*Mengukur kepuasan pelanggan melalui analisis 5 dimensi kualitas layanan*
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+</div>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 📋 DAFTAR ISI
 
-## Learning Laravel
+- [Tentang Project](#-tentang-project)
+- [Fitur Lengkap](#-fitur-lengkap)
+- [5 Dimensi SERVQUAL](#-5-dimensi-servqual)
+- [Teknologi](#-teknologi)
+- [Instalasi Cepat](#-instalasi-cepat)
+- [Konfigurasi Database](#-konfigurasi-database)
+- [Menjalankan Aplikasi](#-menjalankan-aplikasi)
+- [Struktur Database](#-struktur-database)
+- [Penggunaan Aplikasi](#-penggunaan-aplikasi)
+- [API Endpoints](#-api-endpoints)
+- [Troubleshooting](#-troubleshooting)
+- [Deployment](#-deployment)
+- [Lisensi](#-lisensi)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🎯 TENTANG PROJECT
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+**SERVQUAL Monitoring System** adalah aplikasi web berbasis Laravel yang dirancang untuk membantu organisasi mengukur dan menganalisis kualitas layanan menggunakan metode **SERVQUAL (Service Quality)** yang dikembangkan oleh Parasuraman, Zeithaml, dan Berry.
 
-## Agentic Development
+Metode SERVQUAL mengukur **GAP** (kesenjangan) antara:
+- **Harapan (Expectation)** : Tingkat layanan yang diharapkan pelanggan
+- **Persepsi (Perception)** : Tingkat layanan yang benar-benar diterima pelanggan
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+**Rumus GAP:** `GAP = Persepsi - Harapan`
+
+- **GAP positif** ( > 0 ) : Layanan melebihi harapan (Sangat Baik)
+- **GAP nol** ( = 0 ) : Layanan sesuai harapan (Baik)
+- **GAP negatif** ( < 0 ) : Layanan di bawah harapan (Perlu Perbaikan)
+
+---
+
+## ✨ FITUR LENGKAP
+
+### 👥 Manajemen Responden
+| Fitur | Deskripsi |
+|-------|-----------|
+| CRUD Lengkap | Tambah, edit, hapus, lihat data responden |
+| Import Excel | Import data responden massal dari file Excel |
+| Export Data | Export ke format Excel, CSV, atau PDF |
+| Search & Filter | Cari berdasarkan nama, umur, pekerjaan, status |
+| Kode Unik | Generate kode unik otomatis untuk setiap responden |
+| Status Tracking | Lacak status pengisian (pending/completed/expired) |
+
+### 📝 Kuesioner SERVQUAL
+| Fitur | Deskripsi |
+|-------|-----------|
+| 22 Pernyataan | Mengikuti standar SERVQUAL original |
+| Skala Likert 1-7 | 1=Sangat Tidak Setuju, 7=Sangat Setuju |
+| Penilaian Ganda | Harapan dan persepsi dinilai terpisah |
+| Progress Bar | Indikator progress pengisian kuesioner |
+| Auto-save | Data tersimpan otomatis per halaman |
+
+### 📊 Analisis & Pelaporan
+| Fitur | Deskripsi |
+|-------|-----------|
+| Gap Analysis | Perhitungan gap (P - E) otomatis real-time |
+| Per Dimensi | Analisis detail per 5 dimensi SERVQUAL |
+| Visualisasi Grafik | Grafik batang, garis, radar, dan pie chart |
+| Export Laporan | Generate laporan PDF, Excel, atau CSV |
+| Rekomendasi | Rekomendasi perbaikan berdasarkan gap terbesar |
+
+### 🛡️ Admin Panel
+| Fitur | Deskripsi |
+|-------|-----------|
+| Dashboard | Ringkasan statistik real-time (total responden, rata-rata gap, tren) |
+| Manajemen User | CRUD user, role & permission (admin/staff/viewer) |
+| Activity Log | Catatan semua aktivitas pengguna |
+| Backup Database | Backup & restore database otomatis |
+| Pengaturan Sistem | Konfigurasi dinamis (periode laporan, skor minimal/maksimal) |
+
+### 🔔 Notifikasi
+| Fitur | Deskripsi |
+|-------|-----------|
+| Email Notifikasi | Pengingat pengisian kuesioner via email |
+| Real-time Toast | Notifikasi sukses/error/warning |
+| Weekly Report | Laporan mingguan otomatis ke email admin |
+
+---
+
+## 📐 5 DIMENSI SERVQUAL
+
+| Dimensi | Kode | Penjelasan | Contoh Pernyataan |
+|---------|------|------------|-------------------|
+| **Tangible** (Bukti Fisik) | TAN | Penampilan fasilitas fisik, peralatan, dan karyawan | "Perusahaan memiliki peralatan yang modern" |
+| **Reliability** (Keandalan) | REL | Kemampuan memberikan layanan yang dijanjikan dengan tepat dan andal | "Perusahaan memberikan layanan sesuai janji yang diberikan" |
+| **Responsiveness** (Daya Tanggap) | RES | Kesediaan membantu pelanggan dan memberikan layanan yang cepat | "Karyawan cepat tanggap dalam menangani keluhan pelanggan" |
+| **Assurance** (Jaminan) | ASS | Pengetahuan, kesopanan karyawan, dan kemampuan menumbuhkan kepercayaan | "Karyawan membuat pelanggan merasa aman selama bertransaksi" |
+| **Empathy** (Empati) | EMP | Perhatian individual yang diberikan perusahaan kepada pelanggan | "Perusahaan memiliki jam operasional yang nyaman bagi pelanggan" |
+
+---
+
+## 🛠️ TEKNOLOGI
+
+### Backend
+- Laravel 10.x
+- PHP 8.1+
+- MySQL 8.0 / MariaDB 10.6
+- Laravel Sanctum (Authentication API)
+- Laravel Excel (Import/Export)
+- DomPDF / barryvdh/laravel-dompdf
+
+### Frontend
+- Blade Template Engine
+- Bootstrap 5.3
+- Tailwind CSS 3.x
+- Alpine.js 3.x
+- jQuery 3.6
+- Chart.js / ApexCharts
+- DataTables (Server-side)
+- SweetAlert2
+
+### Devops & Tools
+- Git & GitHub
+- Composer 2.x
+- NPM / Yarn
+- Laragon (Local Development)
+- VS Code
+
+---
+
+## ⚡ INSTALASI CEPAT
+
+### Persyaratan Sistem
+| Komponen | Minimal |
+|----------|---------|
+| PHP | 8.1+ |
+| Composer | 2.x |
+| MySQL | 5.7+ |
+| Laragon/XAMPP | Terbaru |
+
+### Langkah-langkah Instalasi
 
 ```bash
-composer require laravel/boost --dev
+# 1. Clone repository
+git clone https://github.com/antoniusrafaelnababan25/servequal.git
+cd servequal
 
-php artisan boost:install
-```
+# 2. Install PHP dependencies
+composer install
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+# 3. Copy environment file
+cp .env.example .env
 
-## Contributing
+# 4. Generate application key
+php artisan key:generate
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# 5. Create database (via phpMyAdmin atau CLI)
+# CREATE DATABASE servqual_db;
 
-## Code of Conduct
+# 6. Jalankan migrasi database
+php artisan migrate
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# 7. Isi data awal (seeder)
+php artisan db:seed
 
-## Security Vulnerabilities
+# 8. Buat symbolic link untuk storage
+php artisan storage:link
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# 9. Install frontend dependencies (opsional)
+npm install
+npm run build
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# 10. Jalankan development server
+php artisan serve
